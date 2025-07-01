@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { generateId } from "@/lib/utils";
+import { useLocalStorage } from "@/lib/useLocalStorage";
 
 type DDayEvent = {
   id: string;
@@ -8,37 +10,6 @@ type DDayEvent = {
   date: string;
   type: "before" | "after"; // before: D-day, after: D+day
 };
-
-function generateId() {
-  // 서버 사이드에서는 일관된 ID를 생성하지 않도록 함
-  if (typeof window === "undefined") {
-    return "temp-id-" + Math.random().toString(36).substring(2, 15);
-  }
-
-  return (
-    Math.random().toString(36).substring(2, 15) +
-    Date.now().toString(36) +
-    Math.random().toString(36).substring(2, 15)
-  );
-}
-
-// 로컬 스토리지에서 데이터를 안전하게 로드하는 함수
-function loadFromStorage(): DDayEvent[] {
-  if (typeof window === "undefined") {
-    return [];
-  }
-
-  try {
-    const savedEvents = localStorage.getItem("dday-events");
-    return savedEvents ? JSON.parse(savedEvents) : [];
-  } catch (error) {
-    console.error(
-      "로컬 스토리지에서 데이터를 불러오는 중 오류가 발생했습니다:",
-      error
-    );
-    return [];
-  }
-}
 
 // D-day 계산 함수
 function calculateDDay(targetDate: string): {
@@ -72,14 +43,10 @@ function isValidDate(dateString: string): boolean {
 export default function DDay() {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
-  const [events, setEvents] = useState<DDayEvent[]>([]);
-  const [isClient, setIsClient] = useState(false);
+  const [events, setEvents] = useLocalStorage<DDayEvent[]>("dday-events", []);
   const [todayString, setTodayString] = useState("");
 
-  // 클라이언트 사이드에서만 실행
   useEffect(() => {
-    setIsClient(true);
-    setEvents(loadFromStorage());
     setTodayString(
       new Date().toLocaleDateString("ko-KR", {
         year: "numeric",
@@ -89,13 +56,6 @@ export default function DDay() {
       })
     );
   }, []);
-
-  // 이벤트가 변경될 때마다 로컬 스토리지에 저장
-  useEffect(() => {
-    if (isClient && events.length > 0) {
-      localStorage.setItem("dday-events", JSON.stringify(events));
-    }
-  }, [events, isClient]);
 
   // 이벤트 추가
   const handleAddEvent = () => {
@@ -171,14 +131,14 @@ export default function DDay() {
           <div className="flex justify-between items-center">
             <h1 className="text-lg">D-day 목록</h1>
             <div className="text-sm text-gray-500">
-              총 {isClient ? events.length : 0}개의 이벤트
+              총 {events.length}개의 이벤트
             </div>
           </div>
 
           <div className="mt-2">
-            {!isClient || events.length === 0 ? (
+            {events.length === 0 ? (
               <div className="modern-border p-4 bg-gray-50 text-gray-400 text-center">
-                {!isClient ? "로딩 중..." : "등록된 D-day가 없습니다."}
+                등록된 D-day가 없습니다.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -246,9 +206,7 @@ export default function DDay() {
 
         {/* 오늘 날짜 표시 */}
         <div className="mt-6 text-center">
-          <div className="text-sm text-gray-500">
-            오늘: {isClient ? todayString : "로딩 중..."}
-          </div>
+          <div className="text-sm text-gray-500">오늘: {todayString}</div>
         </div>
       </div>
     </div>

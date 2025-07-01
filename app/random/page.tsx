@@ -1,36 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useLocalStorage } from "@/lib/useLocalStorage";
 
 export default function RandomPicker() {
   const [inputValue, setInputValue] = useState("");
-  const [itemList, setItemList] = useState<string[]>([]);
-  const [pickCount, setPickCount] = useState(1);
+  const [itemList, setItemList] = useLocalStorage<string[]>("random-items", []);
+  const [pickCount, setPickCount] = useLocalStorage<number>(
+    "random-pick-count",
+    1
+  );
   const [result, setResult] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-
-  // 로컬스토리지에서 불러오기
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedList = localStorage.getItem("random-items");
-      const savedCount = localStorage.getItem("random-pick-count");
-      setItemList(savedList ? JSON.parse(savedList) : []);
-      setPickCount(savedCount ? Number(savedCount) : 1);
-    }
-  }, []);
-
-  // 로컬스토리지에 저장
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("random-items", JSON.stringify(itemList));
-    }
-  }, [itemList]);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("random-pick-count", pickCount.toString());
-    }
-  }, [pickCount]);
 
   const handleDeleteItem = (idx: number) => {
     setItemList((prev) => prev.filter((_, i) => i !== idx));

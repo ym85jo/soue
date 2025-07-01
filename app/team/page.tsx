@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { generateId } from "@/lib/utils";
+import { useLocalStorage } from "@/lib/useLocalStorage";
 
 type Player = {
   id: string;
@@ -21,14 +23,6 @@ const TEAM_COUNT = 4;
 const BACKGROUND_COLORS = ["", "#cfff61", "#f35b10"];
 
 // ===== 유틸 함수 =====
-function generateId() {
-  return (
-    Math.random().toString(36).substring(2, 15) +
-    Date.now().toString(36) +
-    Math.random().toString(36).substring(2, 15)
-  );
-}
-
 function createDefaultTeams(): TeamList {
   const obj: TeamList = {};
   for (let i = 1; i <= TEAM_COUNT; i++) obj[`team${i}`] = [];
@@ -41,104 +35,28 @@ function createDefaultTeamColors(): TeamColors {
   return obj;
 }
 
-function loadFromStorage() {
-  if (typeof window === "undefined") {
-    return {
-      waitingList: [],
-      teams: createDefaultTeams(),
-      teamColors: createDefaultTeamColors(),
-      selectedTeamCount: 4,
-    };
-  }
-  try {
-    const savedWaitingList = localStorage.getItem("team-waiting-list");
-    const savedTeams = localStorage.getItem("team-teams");
-    const savedTeamColors = localStorage.getItem("team-colors");
-    const savedSelectedTeamCount = localStorage.getItem("team-selected-count");
-    let teams: TeamList;
-    try {
-      teams = savedTeams ? JSON.parse(savedTeams) : createDefaultTeams();
-      for (let i = 1; i <= TEAM_COUNT; i++) {
-        const teamKey = `team${i}`;
-        if (!teams[teamKey] || !Array.isArray(teams[teamKey]))
-          teams[teamKey] = [];
-      }
-    } catch {
-      teams = createDefaultTeams();
-    }
-    let teamColors: TeamColors;
-    try {
-      teamColors = savedTeamColors
-        ? JSON.parse(savedTeamColors)
-        : createDefaultTeamColors();
-      for (let i = 1; i <= TEAM_COUNT; i++) {
-        const teamKey = `team${i}`;
-        if (!(teamKey in teamColors)) teamColors[teamKey] = "";
-      }
-    } catch {
-      teamColors = createDefaultTeamColors();
-    }
-    return {
-      waitingList: savedWaitingList ? JSON.parse(savedWaitingList) : [],
-      teams,
-      teamColors,
-      selectedTeamCount: savedSelectedTeamCount
-        ? Number(savedSelectedTeamCount)
-        : 4,
-    };
-  } catch {
-    return {
-      waitingList: [],
-      teams: createDefaultTeams(),
-      teamColors: createDefaultTeamColors(),
-      selectedTeamCount: 4,
-    };
-  }
-}
-
 export default function Team() {
   // --- 상태 선언 ---
-  const [isClient, setIsClient] = useState(false);
   const [textareaValue, setTextareaValue] = useState("");
-  const [waitingList, setWaitingList] = useState<Player[]>([]);
-  const [teams, setTeams] = useState<TeamList>(createDefaultTeams());
-  const [teamColors, setTeamColors] = useState<TeamColors>(
+  const [waitingList, setWaitingList] = useLocalStorage<Player[]>(
+    "team-waiting-list",
+    []
+  );
+  const [teams, setTeams] = useLocalStorage<TeamList>(
+    "team-teams",
+    createDefaultTeams()
+  );
+  const [teamColors, setTeamColors] = useLocalStorage<TeamColors>(
+    "team-colors",
     createDefaultTeamColors()
   );
-  const [selectedTeamCount, setSelectedTeamCount] = useState<number>(4);
+  const [selectedTeamCount, setSelectedTeamCount] = useLocalStorage<number>(
+    "team-selected-count",
+    4
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dragItem = useRef<{ player: Player; from: string } | null>(null);
   const [dragOverTarget, setDragOverTarget] = useState<string | null>(null);
-
-  // --- 데이터 로딩 및 저장 useEffect ---
-  useEffect(() => {
-    setIsClient(true);
-    const data = loadFromStorage();
-    setWaitingList(data.waitingList);
-    setTeams(data.teams);
-    setTeamColors(data.teamColors);
-    setSelectedTeamCount(data.selectedTeamCount);
-  }, []);
-  useEffect(() => {
-    if (isClient && typeof window !== "undefined") {
-      localStorage.setItem("team-waiting-list", JSON.stringify(waitingList));
-    }
-  }, [waitingList, isClient]);
-  useEffect(() => {
-    if (isClient && typeof window !== "undefined") {
-      localStorage.setItem("team-teams", JSON.stringify(teams));
-    }
-  }, [teams, isClient]);
-  useEffect(() => {
-    if (isClient && typeof window !== "undefined") {
-      localStorage.setItem("team-colors", JSON.stringify(teamColors));
-    }
-  }, [teamColors, isClient]);
-  useEffect(() => {
-    if (isClient && typeof window !== "undefined") {
-      localStorage.setItem("team-selected-count", selectedTeamCount.toString());
-    }
-  }, [selectedTeamCount, isClient]);
 
   // --- 핸들러 함수 ---
   // 모달
@@ -219,7 +137,6 @@ export default function Team() {
   };
   // 뒤로가기 시 모달 닫기
   useEffect(() => {
-    if (!isClient) return;
     const handlePopState = () => {
       if (isModalOpen) setIsModalOpen(false);
     };
@@ -233,7 +150,7 @@ export default function Team() {
         window.history.back();
       }
     };
-  }, [isModalOpen, isClient]);
+  }, [isModalOpen]);
 
   const handleReset = () => {
     if (typeof window !== "undefined") {
@@ -441,107 +358,91 @@ export default function Team() {
     </div>
   );
 
-  // --- 메인 렌더 ---
-  if (typeof window !== "undefined" && !isClient) {
-    return (
-      <div className="p-6 max-w-[920px] mx-auto">
-        <h1 className="text-2xl">Team</h1>
-        <div className="mt-4">로딩 중...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="p-6 max-w-[920px] mx-auto">
-      {!isClient ? (
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-lg text-gray-500">로딩 중...</div>
+      <>
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl">Team</h1>
+          <div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="bg-amber-600 text-white p-2 rounded hover:bg-amber-700 transition"
+                onClick={handleReset}
+              >
+                초기화
+              </button>
+            </div>
+          </div>
         </div>
-      ) : (
-        <>
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl">Team</h1>
-            <div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  className="bg-amber-600 text-white p-2 rounded hover:bg-amber-700 transition"
-                  onClick={handleReset}
-                >
-                  초기화
-                </button>
-              </div>
-            </div>
-          </div>
 
-          <div className="mt-4 flex flex-col w-full">
-            <textarea
-              className="modern-border p-2 mb-2 resize-y min-h-[80px]"
-              placeholder="여러 명의 선수를 한 줄에 한 명씩 입력하세요."
-              value={textareaValue}
-              onChange={(e) => setTextareaValue(e.target.value)}
-            />
-            <button
-              type="button"
-              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
-              onClick={handleAddPlayers}
-            >
-              선수추가
-            </button>
-            <div className="mt-6">
-              <div className="flex justify-between items-center">
-                <h1 className="text-lg">
-                  대기자 명단
-                  <span className="ml-2 text-gray-500 text-base font-normal">
-                    ({waitingList.length}명)
-                  </span>
-                </h1>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <select
-                      className="modern-border-sm p-2"
-                      value={selectedTeamCount}
-                      onChange={(e) =>
-                        setSelectedTeamCount(Number(e.target.value))
-                      }
-                    >
-                      <option value={2}>2개팀</option>
-                      <option value={3}>3개팀</option>
-                      <option value={4}>4개팀</option>
-                    </select>
-                    <button
-                      type="button"
-                      className="bg-gray-600 text-white p-2 rounded hover:bg-gray-700 transition"
-                      onClick={handleRandomAssignment}
-                    >
-                      랜덤 배정
-                    </button>
-                  </div>
-                </div>
-              </div>
-              {renderWaitingList()}
-            </div>
-            <div className="mt-6">
-              <div className="flex justify-between items-center">
-                <h1 className="text-lg">팀 선정</h1>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      className="bg-gray-600 text-white p-2 rounded hover:bg-gray-700 transition"
-                      onClick={handleSummaryView}
-                    >
-                      Result
-                    </button>
-                  </div>
+        <div className="mt-4 flex flex-col w-full">
+          <textarea
+            className="modern-border p-2 mb-2 resize-y min-h-[80px]"
+            placeholder="여러 명의 선수를 한 줄에 한 명씩 입력하세요."
+            value={textareaValue}
+            onChange={(e) => setTextareaValue(e.target.value)}
+          />
+          <button
+            type="button"
+            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
+            onClick={handleAddPlayers}
+          >
+            선수추가
+          </button>
+          <div className="mt-6">
+            <div className="flex justify-between items-center">
+              <h1 className="text-lg">
+                대기자 명단
+                <span className="ml-2 text-gray-500 text-base font-normal">
+                  ({waitingList.length}명)
+                </span>
+              </h1>
+              <div>
+                <div className="flex items-center gap-2">
+                  <select
+                    className="modern-border-sm p-2"
+                    value={selectedTeamCount}
+                    onChange={(e) =>
+                      setSelectedTeamCount(Number(e.target.value))
+                    }
+                  >
+                    <option value={2}>2개팀</option>
+                    <option value={3}>3개팀</option>
+                    <option value={4}>4개팀</option>
+                  </select>
+                  <button
+                    type="button"
+                    className="bg-gray-600 text-white p-2 rounded hover:bg-gray-700 transition"
+                    onClick={handleRandomAssignment}
+                  >
+                    랜덤 배정
+                  </button>
                 </div>
               </div>
             </div>
-            {renderTeams()}
+            {renderWaitingList()}
           </div>
-          {isModalOpen && renderSummaryModal()}
-        </>
-      )}
+          <div className="mt-6">
+            <div className="flex justify-between items-center">
+              <h1 className="text-lg">팀 선정</h1>
+              <div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="bg-gray-600 text-white p-2 rounded hover:bg-gray-700 transition"
+                    onClick={handleSummaryView}
+                  >
+                    Result
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {renderTeams()}
+        </div>
+        {isModalOpen && renderSummaryModal()}
+      </>
     </div>
   );
 }

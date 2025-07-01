@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { useLocalStorage } from "@/lib/useLocalStorage";
 
 interface Todo {
   id: number;
@@ -11,21 +12,9 @@ interface Todo {
 const STORAGE_KEY = "todo-list-v01";
 
 export default function TodoPage() {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useLocalStorage<Todo[]>(STORAGE_KEY, []);
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // 로컬 스토리지에서 불러오기
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    console.log("로컬스토리지에서 불러옴:", stored);
-    if (stored) setTodos(JSON.parse(stored));
-  }, []);
-
-  // 변경 시 로컬 스토리지에 저장
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
-  }, [todos]);
 
   // 할 일 추가
   const addTodo = () => {
