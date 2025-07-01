@@ -202,9 +202,13 @@ export default function Team() {
         </div>
       </div>
       <div
-        className={`border border-red-400 rounded p-4 min-h-[100px] bg-red-50 mt-1 w-1/6 flex flex-col items-center justify-center transition-colors duration-150 ${
-          dragOverTarget === "delete" ? "bg-red-200" : ""
-        }`}
+        className={`border rounded p-4 min-h-[100px] mt-1 w-1/6 flex flex-col items-center justify-center transition-all duration-150
+          ${
+            dragOverTarget === "delete"
+              ? "border-red-400 bg-red-200 shadow-lg shadow-red-200/50"
+              : "border-red-200 bg-red-100"
+          }
+        `}
         onDragOver={(e) => handleDragOver(e, "delete")}
         onDragLeave={() => handleDragLeave("delete")}
         onDrop={() => {
@@ -222,7 +226,11 @@ export default function Team() {
           dragItem.current = null;
         }}
       >
-        <span className="text-red-500 font-semibold text-sm">
+        <span
+          className={`font-semibold text-sm text-red-400 flex flex-col items-center justify-center transition-transform duration-150 ${
+            dragOverTarget === "delete" ? "scale-110" : ""
+          }`}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="w-6 h-6 mb-1"
