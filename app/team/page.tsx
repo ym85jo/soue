@@ -442,6 +442,15 @@ export default function Team() {
   );
 
   // --- 메인 렌더 ---
+  if (typeof window !== "undefined" && !isClient) {
+    return (
+      <div className="p-6 max-w-[920px] mx-auto">
+        <h1 className="text-2xl">Team</h1>
+        <div className="mt-4">로딩 중...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-[920px] mx-auto">
       {!isClient ? (
