@@ -19,12 +19,11 @@ export default function Header() {
   // 메뉴 항목을 JSON 배열로 관리
   const menuItems = useMemo(
     () => [
-      { label: "홈", href: "/" },
       { label: "Team", href: "/team" },
       { label: "D-Day", href: "/dday" },
-      { label: "만 나이 계산기", href: "/age" },
+      { label: "나이 계산기", href: "/age" },
       { label: "제비 뽑기", href: "/random" },
-      { label: "TODO", href: "/todo" },
+      { label: "할 일", href: "/todo" },
     ],
     []
   );

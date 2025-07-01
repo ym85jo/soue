@@ -236,6 +236,13 @@ export default function Team() {
   }, [isModalOpen, isClient]);
 
   const handleReset = () => {
+    if (typeof window !== "undefined") {
+      if (
+        !window.confirm("정말 초기화하시겠습니까? 모든 데이터가 삭제됩니다.")
+      ) {
+        return;
+      }
+    }
     setWaitingList([]);
     setTeams(createDefaultTeams());
     setTeamColors(createDefaultTeamColors());
@@ -474,7 +481,12 @@ export default function Team() {
             </button>
             <div className="mt-6">
               <div className="flex justify-between items-center">
-                <h1 className="text-lg">대기자 명단</h1>
+                <h1 className="text-lg">
+                  대기자 명단
+                  <span className="ml-2 text-gray-500 text-base font-normal">
+                    ({waitingList.length}명)
+                  </span>
+                </h1>
                 <div>
                   <div className="flex items-center gap-2">
                     <select
