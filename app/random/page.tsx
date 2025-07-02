@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLocalStorage } from "@/lib/useLocalStorage";
+import { toast } from "sonner";
 
 export default function RandomPicker() {
   const [inputValue, setInputValue] = useState("");
@@ -16,16 +17,21 @@ export default function RandomPicker() {
 
   const handleDeleteItem = (idx: number) => {
     setItemList((prev) => prev.filter((_, i) => i !== idx));
+    toast.success("항목이 삭제되었습니다.");
   };
 
   const handleReset = () => {
     setItemList([]);
     setResult([]);
     setInputValue("");
+    toast.success("리셋되었습니다.");
   };
 
   const handlePick = () => {
-    if (itemList.length === 0 || pickCount < 1) return;
+    if (itemList.length === 0 || pickCount < 1) {
+      toast.error("항목이 없거나 뽑을 개수가 올바르지 않습니다.");
+      return;
+    }
     setIsLoading(true);
     setResult([]);
     setProgress(0);
@@ -44,6 +50,7 @@ export default function RandomPicker() {
       const shuffled = [...itemList].sort(() => Math.random() - 0.5);
       setResult(shuffled.slice(0, pickCount));
       setIsLoading(false);
+      toast.success("뽑기가 완료되었습니다!");
     }, duration);
   };
 
@@ -61,11 +68,12 @@ export default function RandomPicker() {
             if (!value) return;
             setItemList((prev) => [...prev, value]);
             setInputValue("");
+            toast.success(`"${value}" 항목이 추가되었습니다.`);
           }}
         >
           <input
             className="w-full modern-border-sm p-2 mb-2 min-h-[40px]"
-            placeholder="항목을 입력 하고 엔터를 입력하세요."
+            placeholder="항목을 입력하세요."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
           />
@@ -90,32 +98,35 @@ export default function RandomPicker() {
               등록된 항목이 없습니다.
             </div>
           ) : (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {itemList.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="bg-white modern-border-sm px-3 py-1 flex items-center gap-2"
-                >
-                  <span>{item}</span>
-                  <button
-                    className="text-red-400 hover:text-red-700 text-base px-1"
-                    title="삭제"
-                    onClick={() => handleDeleteItem(idx)}
+            <div className="modern-border rounded p-4 min-h-[100px] bg-gray-50 mt-3">
+              <div className="flex flex-wrap gap-2 mt-2">
+                {itemList.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-white modern-border-sm px-3 py-1 flex items-center gap-2"
                   >
-                    ×
-                  </button>
-                </div>
-              ))}
+                    <span>{item}</span>
+                    <button
+                      className="text-red-400 hover:text-red-700 text-base px-1"
+                      title="삭제"
+                      onClick={() => handleDeleteItem(idx)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
 
+        <hr className="my-6 border-t border-gray-200" />
+
         {/* 뽑기 설정 및 버튼 */}
-        <div className="mt-6 flex flex-col md:flex-row gap-4 items-center">
-          <div className="flex items-center gap-2">
-            <label className="font-medium">몇 개를 뽑을까요?</label>
+        <div className=" flex flex-col md:flex-row gap-4 items-center ">
+          <div className="flex items-center gap-2 w-full">
             <select
-              className="modern-border-sm p-2"
+              className="modern-border-sm p-2 w-full"
               value={pickCount}
               onChange={(e) => setPickCount(Number(e.target.value))}
             >
@@ -128,8 +139,8 @@ export default function RandomPicker() {
           </div>
           <button
             type="button"
-            className={`bg-blue-600 text-white px-4 py-2 rounded transition
-              hover:bg-blue-700
+            className={`bg-gray-600 text-white px-4 py-2 rounded transition w-full
+              hover:bg-gray-700
               ${
                 isLoading || itemList.length === 0
                   ? "opacity-50 cursor-not-allowed"
@@ -158,19 +169,23 @@ export default function RandomPicker() {
           </div>
         )}
         {result.length > 0 && !isLoading && (
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold mb-2">결과</h2>
-            <div className="flex flex-wrap gap-3">
-              {result.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="bg-blue-50 modern-border px-4 py-2 text-blue-800 font-bold text-lg shadow"
-                >
-                  {item}
-                </div>
-              ))}
+          <>
+            <hr className="my-6 border-t border-gray-200" />
+
+            <div className="">
+              <h2 className="text-lg mb-2">결과</h2>
+              <div className="flex flex-wrap gap-3">
+                {result.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-blue-50 modern-border px-4 py-2 text-lg shadow w-full"
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>
