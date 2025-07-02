@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { generateId } from "@/lib/utils";
 import { useLocalStorage } from "@/lib/useLocalStorage";
+import { toast } from "sonner";
 
 type DDayEvent = {
   id: string;
@@ -62,7 +63,7 @@ export default function DDay() {
     if (!title.trim() || !date.trim()) return;
 
     if (!isValidDate(date)) {
-      alert("올바른 날짜를 입력해주세요.");
+      toast.error("올바른 날짜를 입력해주세요.");
       return;
     }
 
@@ -76,6 +77,7 @@ export default function DDay() {
     setEvents((prev) => [...prev, newEvent]);
     setTitle("");
     setDate("");
+    toast.success(`${title} 이벤트가 추가되었습니다.`);
   };
 
   // 이벤트 삭제

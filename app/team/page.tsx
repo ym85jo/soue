@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { generateId } from "@/lib/utils";
 import { useLocalStorage } from "@/lib/useLocalStorage";
+import { toast } from "sonner";
 
 type Player = {
   id: string;
@@ -86,6 +87,7 @@ export default function Team() {
     }));
     setWaitingList((prev) => [...prev, ...newPlayers]);
     setTextareaValue("");
+    toast.success(`${names.length}명의 선수가 추가되었습니다.`);
   };
   // 랜덤 배정
   const handleRandomAssignment = () => {
@@ -100,6 +102,7 @@ export default function Team() {
     });
     setTeams(newTeams);
     setWaitingList([]);
+    toast.success("랜덤 배정이 완료되었습니다.");
   };
   // 드래그/드롭
   const handleDragStart = (player: Player, from: string) => {
@@ -120,18 +123,23 @@ export default function Team() {
     if (from === "waiting" && to.startsWith("team")) {
       setWaitingList((prev) => prev.filter((p) => p.id !== player.id));
       setTeams((prev) => ({ ...prev, [to]: [...(prev[to] || []), player] }));
+      toast.success(`${player.name} 선수가 팀 ${to}에 추가되었습니다.`);
     } else if (from.startsWith("team") && to === "waiting") {
       setTeams((prev) => ({
         ...prev,
         [from]: (prev[from] || []).filter((p) => p.id !== player.id),
       }));
       setWaitingList((prev) => [...prev, player]);
+      toast.success(`${player.name} 선수가 대기자 명단에 추가되었습니다.`);
     } else if (from.startsWith("team") && to.startsWith("team")) {
       setTeams((prev) => {
         const newFrom = (prev[from] || []).filter((p) => p.id !== player.id);
         const newTo = [...(prev[to] || []), player];
         return { ...prev, [from]: newFrom, [to]: newTo };
       });
+      toast.success(
+        `${player.name} 선수가 팀 ${to}에서 팀 ${from}로 이동되었습니다.`
+      );
     }
     dragItem.current = null;
   };
@@ -170,6 +178,7 @@ export default function Team() {
       localStorage.removeItem("team-colors");
       localStorage.removeItem("team-selected-count");
     }
+    toast.success("초기화 되었습니다.");
   };
 
   // --- 렌더 함수 ---

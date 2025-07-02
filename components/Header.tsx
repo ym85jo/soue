@@ -24,6 +24,7 @@ export default function Header() {
       { label: "D-Day", href: "/dday" },
       { label: "나이 계산기", href: "/age" },
       { label: "제비 뽑기", href: "/random" },
+      { label: "메모장", href: "/memo" },
     ],
     []
   );
