@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useLocalStorage } from "@/lib/useLocalStorage";
+import { toast } from "sonner";
 
 interface Todo {
   id: number;
@@ -23,19 +24,29 @@ export default function TodoPage() {
     setTodos([...todos, { id: Date.now(), text, completed: false }]);
     setInput("");
     inputRef.current?.focus();
+    toast.success("할 일이 추가되었습니다.");
   };
 
   // 할 일 삭제
   const deleteTodo = (id: number) => {
     setTodos(todos.filter((todo) => todo.id !== id));
+    toast.success("할 일이 삭제되었습니다.");
   };
 
   // 완료 체크
   const toggleTodo = (id: number) => {
     setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
+      todos.map((todo) => {
+        if (todo.id === id) {
+          toast.success(
+            todo.completed
+              ? "할 일이 완료 취소되었습니다."
+              : "할 일이 완료 되었습니다."
+          );
+          return { ...todo, completed: !todo.completed };
+        }
+        return todo;
+      })
     );
   };
 
@@ -43,6 +54,7 @@ export default function TodoPage() {
   const clearAll = () => {
     if (window.confirm("정말 전체 삭제하시겠습니까?")) {
       setTodos([]);
+      toast.success("할 일이 전체 삭제되었습니다.");
     }
   };
 
@@ -55,7 +67,7 @@ export default function TodoPage() {
 
   return (
     <div className="p-6 max-w-[920px] mx-auto">
-      <h1 className="text-2xl">TODO 리스트</h1>
+      <h1 className="text-2xl">Todo</h1>
 
       <div className="mt-4 flex flex-col w-full">
         {/* 입력 폼 */}
