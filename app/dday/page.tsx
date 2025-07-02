@@ -91,45 +91,39 @@ export default function DDay() {
 
       <div className="mt-4 flex flex-col w-full">
         {/* 입력 폼 */}
-        <div className="modern-border p-4 bg-gray-50">
-          <div className="flex flex-col md:flex-row gap-4 mb-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                제목
-              </label>
-              <input
-                type="text"
-                className="w-full modern-border-sm p-2"
-                placeholder="이벤트 제목을 입력하세요"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleAddEvent()}
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                날짜
-              </label>
-              <input
-                type="date"
-                className="w-full modern-border-sm p-2"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleAddEvent()}
-              />
-            </div>
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              className="w-full modern-border-sm p-2"
+              placeholder="이벤트 제목을 입력하세요"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleAddEvent()}
+            />
           </div>
-          <button
-            type="button"
-            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
-            onClick={handleAddEvent}
-          >
-            이벤트 추가
-          </button>
+          <div className="flex-1">
+            <input
+              type="date"
+              className="w-full modern-border-sm p-2"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleAddEvent()}
+            />
+          </div>
         </div>
+        <button
+          type="button"
+          className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
+          onClick={handleAddEvent}
+        >
+          이벤트 추가
+        </button>
+
+        <hr className="my-8 border-t border-gray-200" />
 
         {/* D-day 목록 */}
-        <div className="mt-6">
+        <div className="">
           <div className="flex justify-between items-center">
             <h1 className="text-lg">D-day 목록</h1>
             <div className="text-sm text-gray-500">

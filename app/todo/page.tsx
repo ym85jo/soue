@@ -71,31 +71,28 @@ export default function TodoPage() {
 
       <div className="mt-4 flex flex-col w-full">
         {/* 입력 폼 */}
-        <div className="modern-border p-4 bg-gray-50">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            할 일을 입력하고 엔터를 눌러 추가하세요
-          </label>
-          <div className="flex gap-2">
-            <input
-              ref={inputRef}
-              type="text"
-              className="flex-1 modern-border-sm p-2 focus:outline-none"
-              placeholder="할 일을 입력하세요"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-            <button
-              onClick={addTodo}
-              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
-            >
-              추가
-            </button>
-          </div>
+        <div className="flex gap-2">
+          <input
+            ref={inputRef}
+            type="text"
+            className="flex-1 modern-border-sm p-2 focus:outline-none"
+            placeholder="할 일을 입력하세요"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <button
+            onClick={addTodo}
+            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
+          >
+            추가
+          </button>
         </div>
 
+        <hr className="my-8 border-t border-gray-200" />
+
         {/* TODO 목록 */}
-        <div className="mt-6">
+        <div className="">
           <div className="flex justify-between items-center">
             <h2 className="text-lg">할 일 목록</h2>
             <div className="text-sm text-gray-500">

@@ -387,7 +387,7 @@ export default function Team() {
                 className="bg-amber-600 text-white p-2 rounded hover:bg-amber-700 transition"
                 onClick={handleReset}
               >
-                초기화
+                Reset
               </button>
             </div>
           </div>

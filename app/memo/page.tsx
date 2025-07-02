@@ -1,14 +1,6 @@
 "use client";
 
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardAction,
-  CardContent,
-} from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import {
   Dialog,
   DialogTrigger,
   DialogContent,
@@ -20,6 +12,7 @@ import {
 import { useLocalStorage } from "@/lib/useLocalStorage";
 import { useRef, useState, useEffect } from "react";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function MemoPage() {
   const [memo, setMemo] = useLocalStorage<string>("memo", "");
@@ -56,71 +49,68 @@ export default function MemoPage() {
       className="p-6 max-w-[920px] mx-auto min-h-screen flex flex-col"
       style={{ minHeight: "calc(100vh - 140px)" }} // 헤더 64px, 푸터 56px
     >
-      <h1 className="text-2xl">메모장</h1>
-      <div className="mt-4 flex flex-col w-full flex-1">
-        <Card className="w-full max-w-2xl mx-auto flex flex-col flex-1">
-          <CardHeader>
-            <CardTitle>메모</CardTitle>
-            <CardAction>
-              <div className="flex gap-2">
+      <div className="flex justify-between">
+        <h1 className="text-2xl">메모장</h1>
+        <div>
+          <div className="flex gap-2">
+            <button
+              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
+              type="button"
+              onClick={handleSave}
+            >
+              저장
+            </button>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
                 <button
-                  className="text-xs px-3 py-1 modern-border-sm bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+                  className="bg-amber-600 text-white px-3 py-1 modern-border-sm hover:bg-amber-700 transition"
                   type="button"
-                  onClick={handleSave}
                 >
-                  저장
+                  Reset
                 </button>
-                <Dialog open={open} onOpenChange={setOpen}>
-                  <DialogTrigger asChild>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeaderUI>
+                  <DialogTitleUI>메모를 초기화할까요?</DialogTitleUI>
+                </DialogHeaderUI>
+                <p className="text-sm text-muted-foreground">
+                  작성한 모든 메모가 삭제됩니다. 이 작업은 되돌릴 수 없습니다.
+                </p>
+                <DialogFooterUI>
+                  <DialogClose asChild>
                     <button
-                      className="text-xs px-3 py-1 modern-border-sm bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+                      className="px-4 py-2 modern-border-sm bg-gray-200 hover:bg-gray-300 text-gray-700"
                       type="button"
                     >
-                      초기화
+                      취소
                     </button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeaderUI>
-                      <DialogTitleUI>메모를 초기화할까요?</DialogTitleUI>
-                    </DialogHeaderUI>
-                    <p className="text-sm text-muted-foreground">
-                      작성한 모든 메모가 삭제됩니다. 이 작업은 되돌릴 수
-                      없습니다.
-                    </p>
-                    <DialogFooterUI>
-                      <DialogClose asChild>
-                        <button
-                          className="px-4 py-2 modern-border-sm bg-gray-200 hover:bg-gray-300 text-gray-700"
-                          type="button"
-                        >
-                          취소
-                        </button>
-                      </DialogClose>
-                      <button
-                        className="px-4 py-2 modern-border-sm bg-red-500 hover:bg-red-600 text-white"
-                        type="button"
-                        onClick={handleReset}
-                      >
-                        초기화
-                      </button>
-                    </DialogFooterUI>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardAction>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col">
-            <Textarea
-              ref={textareaRef}
-              className="w-full h-full resize-none flex-1"
-              placeholder="여기에 메모를 입력하세요..."
-              value={draftMemo}
-              onChange={(e) => setDraftMemo(e.target.value)}
-              spellCheck={false}
-              autoFocus
-            />
-          </CardContent>
-        </Card>
+                  </DialogClose>
+                  <button
+                    className="px-4 py-2 modern-border-sm bg-red-500 hover:bg-red-600 text-white"
+                    type="button"
+                    onClick={handleReset}
+                  >
+                    초기화
+                  </button>
+                </DialogFooterUI>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-col w-full flex-1">
+        <div className="flex-1 flex flex-col">
+          <Textarea
+            ref={textareaRef}
+            className="w-full h-full resize-none flex-1"
+            placeholder="여기에 메모를 입력하세요..."
+            value={draftMemo}
+            onChange={(e) => setDraftMemo(e.target.value)}
+            spellCheck={false}
+            autoFocus
+          />
+        </div>
       </div>
     </div>
   );
