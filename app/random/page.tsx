@@ -55,7 +55,6 @@ export default function RandomPicker() {
       <div className="mt-4 flex flex-col w-full">
         {/* 입력 폼 */}
         <form
-          className="modern-border p-4 bg-gray-50"
           onSubmit={(e) => {
             e.preventDefault();
             const value = inputValue.trim();
@@ -64,19 +63,18 @@ export default function RandomPicker() {
             setInputValue("");
           }}
         >
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            항목을 입력하고 엔터를 눌러 추가하세요
-          </label>
           <input
             className="w-full modern-border-sm p-2 mb-2 min-h-[40px]"
-            placeholder="ex) 피자 ↩️ 치킨 ↩️ 파스타 ↩️ ..."
+            placeholder="항목을 입력 하고 엔터를 입력하세요."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
           />
         </form>
 
+        <hr className="my-6 border-t border-gray-200" />
+
         {/* 항목 리스트 */}
-        <div className="mt-6">
+        <div className="">
           <div className="flex justify-between items-center">
             <h1 className="text-lg">항목 목록</h1>
             <button

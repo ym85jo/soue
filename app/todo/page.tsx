@@ -3,11 +3,13 @@
 import { useRef, useState } from "react";
 import { useLocalStorage } from "@/lib/useLocalStorage";
 import { toast } from "sonner";
+import { formatDate } from "@/lib/utils";
 
 interface Todo {
   id: number;
   text: string;
   completed: boolean;
+  createdAt: string;
 }
 
 const STORAGE_KEY = "todo-list-v01";
@@ -21,7 +23,15 @@ export default function TodoPage() {
   const addTodo = () => {
     const text = input.trim();
     if (!text) return;
-    setTodos([...todos, { id: Date.now(), text, completed: false }]);
+    setTodos([
+      ...todos,
+      {
+        id: Date.now(),
+        text,
+        completed: false,
+        createdAt: formatDate(new Date()),
+      },
+    ]);
     setInput("");
     inputRef.current?.focus();
     toast.success("할 일이 추가되었습니다.");
@@ -89,7 +99,7 @@ export default function TodoPage() {
           </button>
         </div>
 
-        <hr className="my-8 border-t border-gray-200" />
+        <hr className="my-6 border-t border-gray-200" />
 
         {/* TODO 목록 */}
         <div className="">
@@ -107,33 +117,39 @@ export default function TodoPage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {todos.map((todo) => (
-                  <div
-                    key={todo.id}
-                    className="flex items-center bg-white modern-border px-3 py-2 shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={todo.completed}
-                      onChange={() => toggleTodo(todo.id)}
-                      className="mr-3 accent-gray-600 w-5 h-5"
-                    />
-                    <span
-                      className={`flex-1 text-base ${
-                        todo.completed ? "line-through text-gray-400" : ""
-                      }`}
+                {todos
+                  .slice()
+                  .sort((a, b) => b.id - a.id)
+                  .map((todo) => (
+                    <div
+                      key={todo.id}
+                      className="flex items-center bg-white modern-border px-3 py-2 shadow-sm hover:shadow-md transition-shadow"
                     >
-                      {todo.text}
-                    </span>
-                    <button
-                      onClick={() => deleteTodo(todo.id)}
-                      className="ml-2 text-gray-400 hover:text-red-500 transition"
-                      aria-label="삭제"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
+                      <input
+                        type="checkbox"
+                        checked={todo.completed}
+                        onChange={() => toggleTodo(todo.id)}
+                        className="mr-3 accent-gray-600 w-5 h-5"
+                      />
+                      <span
+                        className={`flex-1 text-base ${
+                          todo.completed ? "line-through text-gray-400" : ""
+                        }`}
+                      >
+                        {todo.text}
+                      </span>
+                      <span className="text-xs text-gray-400 mr-2 whitespace-nowrap">
+                        {todo.createdAt}
+                      </span>
+                      <button
+                        onClick={() => deleteTodo(todo.id)}
+                        className="ml-2 text-gray-400 hover:text-red-500 transition"
+                        aria-label="삭제"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
               </div>
             )}
           </div>

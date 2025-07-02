@@ -407,7 +407,10 @@ export default function Team() {
           >
             선수추가
           </button>
-          <div className="mt-6">
+
+          <hr className="my-6 border-t border-gray-200" />
+
+          <div className="">
             <div className="flex justify-between items-center">
               <h1 className="text-lg">
                 대기자 명단
@@ -440,7 +443,10 @@ export default function Team() {
             </div>
             {renderWaitingList()}
           </div>
-          <div className="mt-6">
+
+          <hr className="my-6 border-t border-gray-200" />
+
+          <div className="">
             <div className="flex justify-between items-center">
               <h1 className="text-lg">팀 선정</h1>
               <div>

@@ -75,29 +75,28 @@ export default function AgePage() {
 
   return (
     <div className="p-6 max-w-[920px] mx-auto">
-      <h1 className="text-2xl">만나이 계산기</h1>
+      <h1 className="text-2xl">나이 계산기</h1>
       <div className="mt-4 flex flex-col w-full">
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-4 bg-white p-6 modern-border-lg shadow"
-        >
-          <label className="font-semibold">생년월일을 입력하세요</label>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-0">
           <input
             type="date"
             value={birth}
             onChange={handleChange}
-            className="modern-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="modern-border-sm p-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
             required
           />
           <button
             type="submit"
-            className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+            className="bg-gray-600 text-white py-2 rounded hover:bg-gray-700 transition"
           >
             만나이 계산
           </button>
         </form>
+
+        <hr className="my-6 border-t border-gray-200" />
+
         {age !== null && (
-          <div className="mt-6 text-center text-lg font-medium">
+          <div className="text-center text-lg font-medium">
             만나이: <span className="text-blue-600">{age}세</span>
             {daysToBirthday !== null && (
               <div className="mt-2 text-gray-600 text-base">

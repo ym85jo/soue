@@ -41,6 +41,16 @@ function isValidDate(dateString: string): boolean {
   return date instanceof Date && !isNaN(date.getTime());
 }
 
+// 날짜 포맷 함수 추가
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}.${mm}.${dd}`;
+}
+
 export default function DDay() {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
@@ -48,14 +58,11 @@ export default function DDay() {
   const [todayString, setTodayString] = useState("");
 
   useEffect(() => {
-    setTodayString(
-      new Date().toLocaleDateString("ko-KR", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        weekday: "long",
-      })
-    );
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    setTodayString(`${yyyy}.${mm}.${dd}`);
   }, []);
 
   // 이벤트 추가
@@ -82,7 +89,10 @@ export default function DDay() {
 
   // 이벤트 삭제
   const handleDeleteEvent = (id: string) => {
-    setEvents((prev) => prev.filter((event) => event.id !== id));
+    setEvents((prev) => {
+      toast.success(`$이벤트가 삭제되었습니다.`);
+      return prev.filter((event) => event.id !== id);
+    });
   };
 
   return (
@@ -120,7 +130,7 @@ export default function DDay() {
           이벤트 추가
         </button>
 
-        <hr className="my-8 border-t border-gray-200" />
+        <hr className="my-6 border-t border-gray-200" />
 
         {/* D-day 목록 */}
         <div className="">
@@ -181,7 +191,7 @@ export default function DDay() {
                         </div>
                         {/* 날짜 */}
                         <div className="text-xs text-gray-500 min-w-[90px] text-right">
-                          {event.date}
+                          {formatDate(event.date)}
                         </div>
                         {/* 삭제 버튼 */}
                         <button
