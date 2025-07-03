@@ -53,7 +53,6 @@ const getTeamHeaderStyle = (teamKey: string, teamColors: TeamColors) => ({
   color: ["#949aa7", "#f35b10"].includes(teamColors[teamKey])
     ? "#fff"
     : undefined,
-  borderRadius: 0,
 });
 
 export default function Team() {
@@ -328,7 +327,7 @@ export default function Team() {
       onClick={handleCloseModal}
     >
       <div
-        className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto"
+        className="bg-white rounded-lg p-4 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
@@ -354,8 +353,11 @@ export default function Team() {
                   return (
                     <th
                       key={teamKey}
-                      className="modern-border-sm px-4 py-2 text-center font-semibold"
-                      style={getTeamHeaderStyle(teamKey, teamColors)}
+                      className="modern-border-sm px-2 py-2 text-center font-semibold"
+                      style={{
+                        ...getTeamHeaderStyle(teamKey, teamColors),
+                        borderRadius: 0,
+                      }}
                     >{`팀 ${idx + 1}`}</th>
                   );
                 })}
@@ -376,7 +378,7 @@ export default function Team() {
                       return (
                         <td
                           key={`${teamKey}-${rowIndex}`}
-                          className="modern-border-sm px-4 py-2 text-center text-sm"
+                          className="modern-border-sm px-4 py-2 text-center text-xs"
                         >
                           {player ? player.name : ""}
                         </td>
