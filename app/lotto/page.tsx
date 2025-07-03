@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useLocalStorage } from "@/lib/useLocalStorage";
+import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 // 로또볼 색상 매핑 (공식 색상 참고)
 const getLottoColor = (num: number) => {
@@ -24,12 +24,27 @@ function generateLottoNumbers(): number[] {
 
 export default function LottoPage() {
   const [current, setCurrent] = useState<number[]>([]);
-  const [history, setHistory] = useLocalStorage<number[][]>(
-    "lotto-history",
-    []
-  );
+  const [history, setHistory] = useState<number[][]>([]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [isReady, setIsReady] = useState(false);
+
+  // 클라이언트에서만 localStorage 사용
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // useLocalStorage 훅 사용
+      const stored = window.localStorage.getItem("lotto-history");
+      if (stored) setHistory(JSON.parse(stored));
+      setIsReady(true); // localStorage 읽기 완료
+    }
+  }, []);
+
+  // history가 바뀔 때 localStorage에 저장
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("lotto-history", JSON.stringify(history));
+    }
+  }, [history]);
 
   // 번호 생성 핸들러
   const handleGenerate = () => {
@@ -48,6 +63,7 @@ export default function LottoPage() {
         setCurrent(numbers);
         setHistory((prev) => [numbers, ...prev]);
         setLoading(false);
+        toast.success("로또 번호가 생성되었습니다!");
       }
     }, 30);
   };
@@ -55,6 +71,7 @@ export default function LottoPage() {
   // 이력 삭제
   const handleDelete = (idx: number) => {
     setHistory((prev) => prev.filter((_, i) => i !== idx));
+    toast.success("이력이 삭제되었습니다.");
   };
 
   // 볼 UI
@@ -89,6 +106,11 @@ export default function LottoPage() {
       </div>
     </div>
   );
+
+  if (!isReady) {
+    // localStorage에서 값을 읽기 전에는 아무것도 렌더링하지 않음
+    return null;
+  }
 
   return (
     <div className="p-6 max-w-[920px] mx-auto">
