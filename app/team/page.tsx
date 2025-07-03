@@ -21,7 +21,19 @@ type TeamColors = {
 const TEAM_COUNT = 4;
 
 // 배경색 배열 정의
-const BACKGROUND_COLORS = ["", "#cfff61", "#f35b10"];
+const BACKGROUND_COLORS = ["#949aa7", "#cfff61", "#f35b10"];
+
+// 공통 스타일 변수 선언
+const COMMON_BTN =
+  "bg-gray-600 text-white p-2 rounded hover:bg-gray-700 transition";
+const COMMON_CARD =
+  "modern-border rounded p-4 min-h-[100px] bg-gray-50 mt-1 transition-colors duration-150";
+const COMMON_CARD_DRAG_OVER = "bg-gray-200";
+const COMMON_DELETE =
+  "border rounded p-4 min-h-[100px] mt-1 flex flex-col items-center justify-center transition-all duration-150";
+const COMMON_DELETE_DRAG_OVER =
+  "border-red-400 bg-red-200 shadow-lg shadow-red-200/50";
+const COMMON_DELETE_DEFAULT = "border-red-200 bg-red-100";
 
 // ===== 유틸 함수 =====
 function createDefaultTeams(): TeamList {
@@ -32,9 +44,17 @@ function createDefaultTeams(): TeamList {
 
 function createDefaultTeamColors(): TeamColors {
   const obj: TeamColors = {};
-  for (let i = 1; i <= TEAM_COUNT; i++) obj[`team${i}`] = "";
+  for (let i = 1; i <= TEAM_COUNT; i++) obj[`team${i}`] = "#949aa7";
   return obj;
 }
+
+const getTeamHeaderStyle = (teamKey: string, teamColors: TeamColors) => ({
+  backgroundColor: teamColors[teamKey] || "transparent",
+  color: ["#949aa7", "#f35b10"].includes(teamColors[teamKey])
+    ? "#fff"
+    : undefined,
+  borderRadius: 0,
+});
 
 export default function Team() {
   // --- 상태 선언 ---
@@ -186,8 +206,8 @@ export default function Team() {
   const renderWaitingList = () => (
     <div className="flex gap-2">
       <div
-        className={`modern-border rounded p-4 min-h-[100px] bg-gray-50 mt-1 w-5/6 transition-colors duration-150 ${
-          dragOverTarget === "waiting" ? "bg-gray-200" : ""
+        className={`${COMMON_CARD} w-5/6 ${
+          dragOverTarget === "waiting" ? COMMON_CARD_DRAG_OVER : ""
         }`}
         onDragOver={(e) => handleDragOver(e, "waiting")}
         onDragLeave={() => handleDragLeave("waiting")}
@@ -211,13 +231,11 @@ export default function Team() {
         </div>
       </div>
       <div
-        className={`border rounded p-4 min-h-[100px] mt-1 w-1/6 flex flex-col items-center justify-center transition-all duration-150
-          ${
-            dragOverTarget === "delete"
-              ? "border-red-400 bg-red-200 shadow-lg shadow-red-200/50"
-              : "border-red-200 bg-red-100"
-          }
-        `}
+        className={`${COMMON_DELETE} w-1/6 ${
+          dragOverTarget === "delete"
+            ? COMMON_DELETE_DRAG_OVER
+            : COMMON_DELETE_DEFAULT
+        }`}
         onDragOver={(e) => handleDragOver(e, "delete")}
         onDragLeave={() => handleDragLeave("delete")}
         onDrop={() => {
@@ -276,7 +294,7 @@ export default function Team() {
           >
             <h2
               className="text-md font-semibold mb-2 cursor-pointer hover:opacity-80 transition-opacity px-2 py-1 rounded"
-              style={{ backgroundColor: teamColors[teamKey] || "transparent" }}
+              style={getTeamHeaderStyle(teamKey, teamColors)}
               onClick={() => handleTeamColorChange(teamKey)}
             >
               {`팀 ${idx + 1}`}
@@ -305,7 +323,8 @@ export default function Team() {
   // 요약 모달 렌더
   const renderSummaryModal = () => (
     <div
-      className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.8)" }}
       onClick={handleCloseModal}
     >
       <div
@@ -336,9 +355,7 @@ export default function Team() {
                     <th
                       key={teamKey}
                       className="modern-border-sm px-4 py-2 text-center font-semibold"
-                      style={{
-                        backgroundColor: teamColors[teamKey] || "#f3f4f6",
-                      }}
+                      style={getTeamHeaderStyle(teamKey, teamColors)}
                     >{`팀 ${idx + 1}`}</th>
                   );
                 })}
@@ -359,7 +376,7 @@ export default function Team() {
                       return (
                         <td
                           key={`${teamKey}-${rowIndex}`}
-                          className="modern-border-sm px-4 py-2 text-center"
+                          className="modern-border-sm px-4 py-2 text-center text-sm"
                         >
                           {player ? player.name : ""}
                         </td>
@@ -402,7 +419,7 @@ export default function Team() {
           />
           <button
             type="button"
-            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
+            className={COMMON_BTN}
             onClick={handleAddPlayers}
           >
             선수추가
