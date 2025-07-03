@@ -21,7 +21,7 @@ export default function Header() {
     () => [
       { label: "Team", href: "/team" },
       { label: "할 일", href: "/todo" },
-      { label: "로또", href: "/lotto" },
+      { label: "로또번호 생성기", href: "/lotto" },
       { label: "D-Day", href: "/dday" },
       { label: "나이 계산기", href: "/age" },
       { label: "제비 뽑기", href: "/random" },

@@ -74,8 +74,8 @@ export default function LottoPage() {
 
   // 프로그레스바 UI
   const ProgressBar = () => (
-    <div className="w-full mb-4">
-      <div className="relative w-full h-2 bg-gray-200 rounded overflow-hidden">
+    <div className="w-full flex items-center justify-center h-full">
+      <div className="relative w-full max-w-[320px] h-2 bg-gray-200 rounded overflow-hidden">
         <div
           className="h-full bg-blue-500 transition-all duration-75"
           style={{ width: `${progress}%` }}
@@ -104,17 +104,35 @@ export default function LottoPage() {
           {loading ? "생성 중..." : "번호 생성"}
         </button>
 
-        {/* 로딩 프로그레스바 */}
-        {loading && <ProgressBar />}
-
-        {/* 현재 생성된 번호 */}
-        {!loading && current.length > 0 && (
-          <div className="modern-border bg-white flex flex-row items-center justify-center gap-2 py-4 mb-6">
-            {current.map((num) => (
-              <LottoBall key={num} num={num} />
-            ))}
-          </div>
-        )}
+        {/* 로딩 프로그레스바 & 결과 영역 */}
+        <div
+          style={{
+            minHeight: 60,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 24,
+          }}
+        >
+          {loading ? (
+            <ProgressBar />
+          ) : (
+            <div
+              className="modern-border bg-white flex flex-row items-center justify-center gap-2 w-full"
+              style={{ minHeight: 40, padding: 10 }}
+            >
+              {current.length > 0 ? (
+                <>
+                  {current.map((num) => (
+                    <LottoBall key={num} num={num} />
+                  ))}
+                </>
+              ) : (
+                <span className="text-gray-400">번호를 생성해주세요.</span>
+              )}
+            </div>
+          )}
+        </div>
 
         <hr className="my-6 border-t border-gray-200" />
 
