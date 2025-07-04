@@ -412,7 +412,7 @@ export default function Team() {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-col w-full">
+        <div className="mt-2 flex flex-col w-full">
           <textarea
             className="modern-border p-2 mb-2 resize-y min-h-[80px]"
             placeholder="여러 명의 선수를 한 줄에 한 명씩 입력하세요."

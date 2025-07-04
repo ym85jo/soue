@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FS OHZZ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css">
+    <style>
+        body {
+            font-size: 14px;
+            background-color: #f5f5f5;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        }
+        .header {
+            background: #ffffff;
+            color: #1a1a1a;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .header::before {
+            display: none;
+        }
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        .title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: -0.5px;
+            color: #1a1a1a;
+        }
+        .clear-button {
+            background-color: #333333;
+            border: none;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 980px;
+            font-size: 1rem;
+            font-weight: 400;
+            transition: all 0.3s ease;
+        }
+        .clear-button:hover {
+            background-color: #4a4a4a;
+            transform: translateY(-1px);
+        }
+        div.title{
+            text-align : center;
+            font-size : 26px;
+            margin-top : 16px;
+            font-weight : bold;
+        }
+        .container-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .left-panel {
+            width: 40%;
+        }
+        .right-panel {
+            width: 55%;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .team {
+            min-height: 80px;
+            padding: 5px;
+            border: 1px solid #e0e0e0;
+            background: #ffffff;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            font-size: 12px;
+            flex-wrap:wrap;
+        }
+        .draggable {
+            padding: 5px;
+            margin: 5px;
+            background: #333333;
+            color: white;
+            cursor: grab;
+            text-align: center;
+            font-size: 12px;
+        }
+        textarea {
+            font-size: 12px;
+            height: 130px;
+        }
+        button {
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+        @media (max-width: 768px) {
+            .container-top {
+                flex-direction: row;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+            }
+            .left-panel, .right-panel {
+                width: 50%;
+            }
+            .right-panel {
+                display: flex;
+                flex-direction: column;
+            }
+        }
+        .team>h3{
+            width : 100%;
+            margin-bottom:3px;
+        }
+        .container h3{
+            font-size:16px;
+            font-weight : bold;
+            margin-bottom : 0;
+            padding-right: 20px;
+        }
+        th,td {
+            padding : 0.8rem;
+            text-align : center;
+        }
+        .delete-zone {
+            background: #f8f8f8;
+            border: 2px dashed #666666;
+            color: #666666;
+            padding: 10px;
+            min-height: 40px;
+            display: flex;
+            justify-content: center;
+            margin-top: 4px;
+        }
+        
+        /* 토스트 메시지 스타일 */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .toast {
+            background-color: #333333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            font-size: 12px;
+            color: #666666;
+            background: #ffffff;
+            margin-top: 4rem;
+            border-top: 1px solid #e0e0e0;
+        }
+        footer a {
+            color: #333333;
+            text-decoration: none;
+            font-weight: 400;
+            transition: color 0.3s ease;
+        }
+        footer a:hover {
+            color: #666666;
+        }
+    </style>
+    <script>
+
+        let PAGE_ORDER = 0;
+
+        function makePlayer(name, order){
+            
+            if(PAGE_ORDER < order) PAGE_ORDER = order;
+
+            const item = document.createElement("div");
+            item.className = "draggable";
+            item.draggable = true;
+            item.innerText = name;
+            item.dataset.order = order;
+            item.dataset.name = name;
+            item.addEventListener("dragstart", dragStart);
+            item.addEventListener("dblclick", orderToLast);
+            return item;
+
+        }
+
+        function orderToLast(event){
+
+            const order = event.target.dataset.order;
+            event.target.dataset.order = ++PAGE_ORDER;
+            const targetTeam = event.target.closest(".team");
+            if (targetTeam) {
+                sortTeam(targetTeam);
+            }
+            showToast(`${event.target.dataset.name} 선수가 마지막으로 이동되었습니다.`);
+            makeGridAll();
+        }
+
+        function showToast(message, duration = 3000) {
+            const toastContainer = document.querySelector('.toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
+            
+            // 토스트 표시
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            
+            // 토스트 제거
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, duration);
+        }
+
+        function addNames() {
+            const namesInput = document.getElementById("names");
+            const names = namesInput.value.split("\n").map(name => name.trim()).filter(name => name !== "");
+            const list = document.getElementById("unassigned");
+            let addedCount = 0;
+            
+            names.forEach(name => {
+                name = name.replace(/[^가-힛a-zA-Z]/g, '');
+                if(name == '') return;
+                const item = makePlayer(name, ++PAGE_ORDER);
+                list.appendChild(item);
+                addedCount++;
+            });
+            
+            namesInput.value = "";
+            updatePlayerCount();
+            saveState();
+            
+            if (addedCount > 0) {
+                showToast(`${addedCount}명의 선수가 추가되었습니다.`);
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                addNames();
+            }
+        }
+
+        function dragStart(event) {
+            event.dataTransfer.setData("text", event.target.dataset.order);
+        }
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            const order = event.dataTransfer.getData("text");
+            const draggedElements = document.querySelectorAll(`.draggable[data-order="${order}"]`);
+            if (draggedElements.length > 0) {
+                const targetTeam = event.target.closest(".team");
+                if (targetTeam) {
+                    targetTeam.appendChild(draggedElements[0]);
+                    sortTeam(targetTeam);
+                    showToast(`${draggedElements[0].dataset.name} 선수가 Team ${targetTeam.dataset.teamno} 에 추가되었습니다.`);
+                }
+            }
+            
+            makeGridAll();
+            updatePlayerCount();
+        }
+
+        function deleteDrop(event) {
+            event.preventDefault();
+            const order = event.dataTransfer.getData("text");
+            const draggedElements = document.querySelectorAll(`.draggable[data-order="${order}"]`);
+            const playerName = draggedElements[0].dataset.name;
+            draggedElements[0].remove();
+            showToast(`${playerName} 선수가 제거되었습니다.`);
+            
+            makeGridAll();
+            updatePlayerCount();
+        }
+
+        function sortTeam(team) {
+            const members = Array.from(team.children).filter(child => child.classList.contains("draggable"));
+            members.sort((a, b) => parseInt(a.dataset.order) - parseInt(b.dataset.order));
+            members.forEach(member => team.appendChild(member));
+        }
+
+        function makeGridAll(){
+            const teams = document.querySelectorAll('.right-panel .team');
+            teams.forEach(function(team){
+              makeGrid(team);  
+            });
+            saveState()
+        }
+        
+        function makeGrid(team){
+
+            const members = Array.from(team.children).filter(child => child.classList.contains("draggable"));
+            let teamno = team.dataset.teamno;
+            
+            const trHead = document.getElementById("tr" + teamno);
+            let trHeadHtml = "<td></td>"
+            members.forEach((member, index) => {
+              trHeadHtml += `<td>${member.dataset.name}</td>`;
+            });
+            trHead.innerHTML = trHeadHtml;
+
+            var playArray = [];
+            var restArray = [];
+
+            var keeperCount = new Array(members.length).fill(0);
+            var keeperPlayer = new Array(members.length).fill(-1);
+            
+            var totalCnt = members.length;
+            var playerCount = Number(document.getElementById('playerCount').value);
+            var totalPlayCount = Number(document.getElementById('totalPlayCount').value);
+            for(var i = 0; i < totalPlayCount; i ++){
+              
+              var playArrayTemp = [];
+              var restArrayTemp = []
+                
+              for(var k = 0; k < playerCount; k++){
+                playArrayTemp.push((i*playerCount + k) % totalCnt)
+              }
+
+              for(var k = playerCount; k < totalCnt; k++){
+                restArrayTemp.push((i*playerCount + k) % totalCnt)
+              }
+
+              let keeperIndex = -1;
+              restArrayTemp.forEach(function(r){
+                if(keeperIndex == -1) keeperIndex = r;
+                if(keeperCount[keeperIndex] > keeperCount[r]) keeperIndex = r;
+              })
+
+              keeperCount[keeperIndex] = keeperCount[keeperIndex] + 1;
+              keeperPlayer[i] = keeperIndex;
+                
+              playArray.push(playArrayTemp);
+              restArray.push(restArrayTemp);
+                
+            }  
+
+            const isChecked = document.getElementById('checkGk' + teamno).checked;
+                        
+            const tbodyLineup = document.getElementById("tbody" + teamno);
+            let tbodyLineupHtml = "";
+            let playerCnt = 0;
+            for (let i = 0; i < totalPlayCount; i++) {
+              tbodyLineupHtml += `<tr><td>${i+1}경기</td>`;
+              members.forEach((member, index) => {
+                if(playArray[i].indexOf(index) > -1){
+                  tbodyLineupHtml += `<td style="color : #205781">P</td>`;
+                } else {
+                  if(keeperPlayer[i] == index && isChecked){
+                      tbodyLineupHtml += `<td style="color:#BF3131">K</td>`;
+                  } else {
+                      tbodyLineupHtml += `<td style="color:#7D0A0A">R</td>`;    
+                  }
+                  
+                }                
+              });  
+              tbodyLineupHtml += `</tr>`
+            }
+            tbodyLineup.innerHTML = tbodyLineupHtml;
+           
+        }
+
+        function updatePlayerCount() {
+            const count = document.querySelectorAll("#unassigned .draggable").length;
+            document.getElementById("playerCountText").innerText = count;
+        }
+
+        function toggleTeamColor(h3) {
+            const colors = ["", "#CCFF00", "rgb(251 129 115)"]; // 파랑, 빨강, 초록
+            let index = parseInt(h3.dataset.colorIndex || "0");
+            index = (index + 1) % colors.length;
+            h3.dataset.colorIndex = index;
+            h3.style.background = colors[index];
+            showToast(`${h3.innerText} 팀 색상이 변경되었습니다.`);
+        }
+
+        // 현재 상태를 로컬 스토리지에 저장
+        function saveState() {
+            const state = {
+                unassigned: Array.from(document.getElementById("unassigned").children)
+                    .filter(child => child.classList.contains("draggable"))
+                    .map(child => ({name : child.dataset.name, order : child.dataset.order})),
+                teams: Array.from(document.querySelectorAll('.right-panel .team div.draggable'))
+                    .map(child => ({team:child.closest('.team').id, name : child.dataset.name, order : child.dataset.order})),
+            };
+            localStorage.setItem('teamState', JSON.stringify(state));
+        }
+
+        function clearAll(){
+            localStorage.removeItem('teamState');
+            location.reload();
+        }
+        
+        function loadState() {
+            
+            const savedTeamState = localStorage.getItem('teamState');
+            if (savedTeamState) {
+                
+                teamState = JSON.parse(savedTeamState);
+                
+                // 팀원 데이터 로드
+                if(teamState.unassigned && teamState.unassigned.length > 0){
+                    teamState.unassigned.forEach(o => {
+                        const item = makePlayer(o.name, Number(o.order));
+                        document.getElementById("unassigned").appendChild(item);
+                    });
+                }
+
+                // 팀 데이터 로드
+                if(teamState.teams && teamState.teams.length > 0){
+                    teamState.teams.forEach(o => {
+                        const item = makePlayer(o.name, Number(o.order));
+                        document.getElementById(o.team).appendChild(item);
+                    });
+                    makeGridAll();
+                    updatePlayerCount();
+                }
+            }
+            
+        }
+
+        function init(){
+            loadState();
+        }
+
+        window.onload = function() {
+            init();
+        };
+
+    </script>
+</head>
+<body>
+    <div class="toast-container"></div>
+    <div class="header">
+        <div class="header-content">
+            <h1 class="title">FS OHZZ</h1>
+        </div>
+    </div>
+    <h1 style="font-size: 22px; font-weight:bold; margin: 28px auto; display: flex; justify-content: space-between; align-items: center;">
+        # 팀원 선정
+        <div>
+            <button class="button" style="margin-right: 10px; padding : 0 1rem;" onclick='clearAll()'> Clear</button>
+        </div>
+    </h1>
+    <div class="container-top">
+        <div class="left-panel">
+            <h2 style="font-size: 16px; margin-bottom: 5px; font-weight:bold;">Player</h2>
+            <textarea type="search" id="names" rows="3" onkeypress="handleKeyPress(event)"></textarea>
+            <h3 style="font-size: 16px; margin-bottom: 5px; font-weight:bold;">
+                Player List
+                (<span id="playerCountText">0</span>명)
+            </h3>
+            <div id="unassigned" class="team" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+
+            <div class="delete-zone" ondragover="allowDrop(event)" ondrop="deleteDrop(event)">
+                REMOVE
+            </div>
+            
+        </div>
+        <div class="right-panel">
+            <div id="team1" data-teamno="1" class="team" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h3 style="font-size: 16px; font-weight:bold;">Team 1</h3>
+            </div>
+            <div id="team2" data-teamno="2" class="team" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h3 style="font-size: 16px; font-weight:bold;">Team 2</h3>
+            </div>
+            <div id="team3" data-teamno="3" class="team" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h3 style="font-size: 16px; font-weight:bold;">Team 3</h3>
+            </div>
+            <div id="team4" data-teamno="4" class="team" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h3 style="font-size: 16px; font-weight:bold;">Team 4</h3>
+            </div>
+        </div>
+    </div>
+
+    <hr/>
+
+    <h1 style="font-size: 22px; font-weight:bold; margin: 28px auto;"># 경기 설정</h1>
+    
+    <label for="playerCount" style="font-size: 12px;">필드 인원 수</label>
+    <select id="playerCount" style="font-size: 12px; padding: 3px;" onchange="makeGridAll()">
+        <option value="4">4명</option>
+        <option value="5" selected>5명</option>
+        <option value="6">6명</option>
+        <option value="7">7명</option>
+        <option value="8">8명</option>
+        <option value="9">9명</option>
+        <option value="10">10명</option>
+    </select>
+
+    <label for="totalPlayCount" style="font-size: 12px;">총 경기 수</label>
+    <select id="totalPlayCount" style="font-size: 12px; padding: 3px;" onchange="makeGridAll()">
+        <option value="4">4경기</option>
+        <option value="5">5경기</option>
+        <option value="6">6경기</option>
+        <option value="7">7경기</option>
+        <option value="8" selected>8경기</option>
+        <option value="9">9경기</option>
+        <option value="10">10경기</option>
+    </select>
+
+    <hr/>
+
+    <h1 style="font-size: 22px; font-weight:bold; margin: 28px auto;"># 출전 명단</h1>
+    
+    <div class="container" style="padding:0;">
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 onclick="toggleTeamColor(this)" data-color-index="0" style="margin: 0;">Team 1</h3>
+            <div>
+                <input type="checkbox" id="checkGk1" onchange="makeGridAll()" checked/>
+                <label class="label-inline" for="checkGk1"><span class="pin">Goleiro</span></span></label>  
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr id="tr1">
+                </tr>    
+            </thead>
+            <tbody id="tbody1"></tbody>
+        </table>
+
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 onclick="toggleTeamColor(this)" data-color-index="0" style="margin: 0;">Team 2</h3>
+            <div>
+                <input type="checkbox" id="checkGk2" onchange="makeGridAll()" checked/>
+                <label class="label-inline" for="checkGk2"><span class="pin">Goleiro</span></span></label>  
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr id="tr2">
+                </tr>    
+            </thead>
+            <tbody id="tbody2"></tbody>
+        </table>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 onclick="toggleTeamColor(this)" data-color-index="0" style="margin: 0;">Team 3</h3>
+            <div>
+                <input type="checkbox" id="checkGk3" onchange="makeGridAll()" checked/>
+                <label class="label-inline" for="checkGk3"><span class="pin">Goleiro</span></span></label>  
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr id="tr3">
+                </tr>    
+            </thead>
+            <tbody id="tbody3"></tbody>
+        </table>
+
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 onclick="toggleTeamColor(this)" data-color-index="0" style="margin: 0;">Team 4</h3>
+            <div>
+                <input type="checkbox" id="checkGk4" onchange="makeGridAll()" checked/>
+                <label class="label-inline" for="checkGk4"><span class="pin">Goleiro</span></span></label>  
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr id="tr4">
+                </tr>    
+            </thead>
+            <tbody id="tbody4"></tbody>
+        </table>
+
+
+        <hr/>
+
+        <footer>
+            © 2025 Created by <a href="https://open.kakao.com/o/s0U8JTsh" target="_blank" style="color: inherit;">yeongmin.</a>
+        </footer>
+
+
+    </div>
+</body>
+</html>

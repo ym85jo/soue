@@ -36,7 +36,7 @@ export default function OgImage() {
         </div>
         <div
           style={{
-            fontSize: 32,
+            fontSize: 36,
             maxWidth: "70%",
             textAlign: "center",
             color: "#cccccc",

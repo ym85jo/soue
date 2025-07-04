@@ -82,7 +82,7 @@ export default function AgePage() {
             type="date"
             value={birth}
             onChange={handleChange}
-            className="modern-border-sm p-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            className="modern-border-sm p-2 focus:outline-none focus:ring-2 focus:ring-gray-400 w-full"
             required
           />
           <button

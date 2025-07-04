@@ -20,6 +20,7 @@ export default function Header() {
   const menuItems = useMemo(
     () => [
       { label: "Team", href: "/team" },
+      { label: "Team(Line Up)", href: "/team2" },
       { label: "할 일", href: "/todo" },
       { label: "로또번호 생성기", href: "/lotto" },
       { label: "D-Day", href: "/dday" },
