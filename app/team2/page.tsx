@@ -485,7 +485,7 @@ export default function Team2Page() {
             {table.header.map((name: string, idx: number) => (
               <td
                 key={idx}
-                className="modern-border px-0 py-2 bg-gray-100 text-center"
+                className="modern-border px-0 py-1 bg-gray-100 text-center"
                 style={{ borderRadius: 0 }}
               >
                 {name}
@@ -548,7 +548,7 @@ export default function Team2Page() {
           {Array.from({ length: 4 }).map((_, idx) => {
             const teamKey = `team${idx + 1}`;
             return (
-              <div key={teamKey} className="mb-4">
+              <div key={teamKey} className="mb-6">
                 <h3
                   className="font-semibold mb-2 px-2 py-1 rounded"
                   style={getTeamHeaderStyle(teamKey)}
