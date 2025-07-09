@@ -326,7 +326,7 @@ export default function Team2Page() {
           ))}
         </select>
       </div>
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-4 flex-wrap">
         {Array.from({ length: 4 }).map((_, idx) => {
           const teamKey = `team${idx + 1}`;
           return (
@@ -343,7 +343,7 @@ export default function Team2Page() {
                 }
                 className="accent-blue-600"
               />
-              <label htmlFor={`keeper-${teamKey}`} className="text-xs">{`팀 ${
+              <label htmlFor={`keeper-${teamKey}`} className="">{`팀 ${
                 idx + 1
               } 키퍼`}</label>
             </div>
