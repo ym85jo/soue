@@ -94,6 +94,14 @@ function getLineupTable(
   return { header, rows };
 }
 
+function getToday(){
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  return`${yyyy}.${mm}.${dd}`;
+}
+
 export default function Team2Page() {
   // 상태(useLocalStorage로 변경)
   const [textareaValue, setTextareaValue] = useState("");
@@ -480,6 +488,18 @@ export default function Team2Page() {
               className="modern-border px-1 bg-blue-50 text-center"
               style={{"borderRadius" : "0"}}
             >
+              <button
+                className="cursor-point"
+                onClick={() => {
+                  setKeeperEnabled({...keeperEnabled, [teamKey] : !keeperEnabled[teamKey]})
+                  if(keeperEnabled[teamKey]){
+                    toast.success(`${teamKey}에 고정키퍼가 있습니다.`);
+                  } else {
+                    toast.success(`${teamKey}에 키퍼 순서를 추가했습니다.`);
+                  }
+                  
+                }}
+              >Keep</button>
             </td>
             {table.header.map((name: string, idx: number) => (
               <td
@@ -536,7 +556,11 @@ export default function Team2Page() {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-xl font-bold">출전 명단</h2>
+          <h2 className="text-xl font-bold">
+            Line Up
+            <span className="text-sm ml-2" style={{fontWeight : "normal", color : "gray"}}>{ getToday()}</span>
+            
+          </h2>
           <button
             className="text-gray-500 hover:text-gray-700 text-2xl"
             onClick={() => setShowLineupModal(false)}
