@@ -231,6 +231,8 @@ export default function Team2Page() {
   const handleDragLeave = (target: string) => {
     if (dragOverTarget === target) setDragOverTarget(null);
   };
+
+  // 
   const handleDrop = (to: string) => {
     setDragOverTarget(null);
     if (!dragItem.current) return;
