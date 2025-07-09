@@ -532,7 +532,7 @@ export default function Team2Page() {
       style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
     >
       <div
-        className="bg-white rounded-lg p-2 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto relative"
+        className="bg-white rounded-lg p-2 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto relative"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-2">
