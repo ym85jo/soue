@@ -478,12 +478,14 @@ export default function Team2Page() {
           <tr>
             <td
               className="modern-border px-1 bg-gray-100 text-center"
+              style={{"borderRadius" : "0"}}
             >
             </td>
             {table.header.map((name: string, idx: number) => (
               <td
                 key={idx}
                 className="modern-border py-1.5 bg-gray-100 text-center"
+                style={{"borderRadius" : "0"}}
               >
                 {name}
               </td>
@@ -546,8 +548,9 @@ export default function Team2Page() {
             return (
               <div key={teamKey} className="mb-6">
                 <h3
-                  className="font-semibold mb-2 px-2 py-1 rounded"
+                  className="font-semibold mb-2 px-2 py-1 rounded cursor-pointer"
                   style={getTeamHeaderStyle(teamKey)}
+                  onClick={() => handleTeamColorChange(teamKey)}
                 >
                   팀 {idx + 1}
                 </h3>
