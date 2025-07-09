@@ -477,14 +477,14 @@ export default function Team2Page() {
         <thead>
           <tr>
             <td
-              className="modern-border px-1 bg-gray-100 text-center"
+              className="modern-border px-1 bg-blue-50 text-center"
               style={{"borderRadius" : "0"}}
             >
             </td>
             {table.header.map((name: string, idx: number) => (
               <td
                 key={idx}
-                className="modern-border py-1.5 bg-gray-100 text-center"
+                className="modern-border py-1.5 bg-blue-50 text-center"
                 style={{"borderRadius" : "0"}}
               >
                 {name}
@@ -497,7 +497,8 @@ export default function Team2Page() {
             (row: { game: number; cells: ("P" | "K" | "R")[] }, i: number) => (
               <tr key={i}>
                 <td
-                  className="modern-border px-1 py-1.5 bg-gray-100 text-center"
+                  className="modern-border px-1 py-1.5 bg-blue-50 text-center"
+                  style={{"borderRadius" : "0"}}
                 >
                   {row.game}경기
                 </td>
@@ -510,7 +511,8 @@ export default function Team2Page() {
                         : cell === "K"
                         ? "text-red-600"
                         : "text-gray-500"
-                    } ${i % 2 === 1 ? "bg-gray-50" : ""}`}
+                    } ${i % 2 === 1 ? "bg-lime-50" : ""}`}
+                    style={{"borderRadius" : "0"}}
                   >
                     {cell}
                   </td>
