@@ -467,7 +467,7 @@ export default function Team2Page() {
     if (players.length === 0)
       return <div className="text-gray-400 text-sm">선수가 없습니다.</div>;
     return (
-      <table className="w-full modern-border text-xs mb-8 table-fixed">
+      <table className="w-full modern-border text-xs table-fixed">
         <colgroup>
           <col style={{ width: "50px" }} />
           {Array.from({ length: table.header.length }).map((_, idx) => (
@@ -476,20 +476,20 @@ export default function Team2Page() {
         </colgroup>
         <thead>
           <tr>
-            <th
-              className="modern-border px-1 py-1 bg-gray-100"
+            <td
+              className="modern-border px-1 py-1 bg-gray-100 text-center"
               style={{ borderRadius: 0 }}
             >
               경기
-            </th>
+            </td>
             {table.header.map((name: string, idx: number) => (
-              <th
+              <td
                 key={idx}
-                className="modern-border px-0 py-2 bg-gray-100"
+                className="modern-border px-0 py-2 bg-gray-100 text-center"
                 style={{ borderRadius: 0 }}
               >
                 {name}
-              </th>
+              </td>
             ))}
           </tr>
         </thead>
@@ -497,16 +497,16 @@ export default function Team2Page() {
           {table.rows.map(
             (row: { game: number; cells: ("P" | "K" | "R")[] }, i: number) => (
               <tr key={i}>
-                <th
-                  className="modern-border px-1 py-1 bg-gray-100"
+                <td
+                  className="modern-border px-1 py-1 bg-gray-100 text-center"
                   style={{ borderRadius: 0 }}
                 >
                   {row.game}경기
-                </th>
+                </td>
                 {row.cells.map((cell: "P" | "K" | "R", j: number) => (
-                  <th
+                  <td
                     key={j}
-                    className={`modern-border px-2 py-2 text-center ${
+                    className={`modern-border px-2 text-center ${
                       cell === "P"
                         ? "text-blue-700"
                         : cell === "K"
@@ -515,7 +515,7 @@ export default function Team2Page() {
                     } ${i % 2 === 1 ? "bg-gray-50" : ""}`}
                   >
                     {cell}
-                  </th>
+                  </td>
                 ))}
               </tr>
             )
@@ -532,10 +532,10 @@ export default function Team2Page() {
       style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
     >
       <div
-        className="bg-white rounded-lg p-4 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto relative"
+        className="bg-white rounded-lg p-2 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto relative"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-2">
           <h2 className="text-xl font-bold">출전 명단</h2>
           <button
             className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -548,7 +548,7 @@ export default function Team2Page() {
           {Array.from({ length: 4 }).map((_, idx) => {
             const teamKey = `team${idx + 1}`;
             return (
-              <div key={teamKey} className="mb-6">
+              <div key={teamKey} className="mb-4">
                 <h3
                   className="font-semibold mb-2 px-2 py-1 rounded"
                   style={getTeamHeaderStyle(teamKey)}
