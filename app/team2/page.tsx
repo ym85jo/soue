@@ -467,7 +467,7 @@ export default function Team2Page() {
     if (players.length === 0)
       return <div className="text-gray-400 text-sm">선수가 없습니다.</div>;
     return (
-      <table className="w-full modern-border text-xs table-fixed">
+      <table className="w-full text-xs table-fixed">
         <colgroup>
           <col style={{ width: "42px" }} />
           {Array.from({ length: table.header.length }).map((_, idx) => (
@@ -477,16 +477,13 @@ export default function Team2Page() {
         <thead>
           <tr>
             <td
-              className="modern-border px-1 py-1 bg-gray-100 text-center"
-              style={{ borderRadius: 0 }}
+              className="modern-border px-1 bg-gray-100 text-center"
             >
-              경기
             </td>
             {table.header.map((name: string, idx: number) => (
               <td
                 key={idx}
-                className="modern-border px-0 py-1 bg-gray-100 text-center"
-                style={{ borderRadius: 0 }}
+                className="modern-border py-1.5 bg-gray-100 text-center"
               >
                 {name}
               </td>
@@ -498,8 +495,7 @@ export default function Team2Page() {
             (row: { game: number; cells: ("P" | "K" | "R")[] }, i: number) => (
               <tr key={i}>
                 <td
-                  className="modern-border px-1 py-1 bg-gray-100 text-center"
-                  style={{ borderRadius: 0 }}
+                  className="modern-border px-1 py-1.5 bg-gray-100 text-center"
                 >
                   {row.game}경기
                 </td>
