@@ -280,7 +280,7 @@ export default function Team2Page() {
 
 
 
-  
+
   // 경기 설정 UI
   const renderGameSettings = () => (
     <div className="flex flex-wrap items-center gap-4 mb-6">
