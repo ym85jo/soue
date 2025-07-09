@@ -469,7 +469,7 @@ export default function Team2Page() {
     return (
       <table className="w-full modern-border text-xs table-fixed">
         <colgroup>
-          <col style={{ width: "50px" }} />
+          <col style={{ width: "42px" }} />
           {Array.from({ length: table.header.length }).map((_, idx) => (
             <col key={idx} style={{ width: `${100 / table.header.length}%` }} />
           ))}
