@@ -81,10 +81,12 @@ const formatTime = (seconds: number): string => {
 const useGameTimer = (
   gameStarted: boolean,
   gameStartTime: Date | null,
-  gameEnded: boolean
+  gameEnded: boolean,
+  boardSize: number | null
 ) => {
   const [elapsedTime, setElapsedTime] = useState(0);
 
+  // 타이머 업데이트
   useEffect(() => {
     if (!gameStarted || !gameStartTime || gameEnded) return;
 
@@ -99,13 +101,18 @@ const useGameTimer = (
     return () => clearInterval(interval);
   }, [gameStarted, gameStartTime, gameEnded]);
 
+  // 게임 설정 변경 시 타이머 리셋
+  useEffect(() => {
+    setElapsedTime(0);
+  }, [boardSize]);
+
   return elapsedTime;
 };
 
 // ====== 메인 컴포넌트 ======
 export default function KnightGame() {
   // ====== 상태 관리 ======
-  const [boardSize, setBoardSize] = useState<number | null>(null);
+  const [boardSize, setBoardSize] = useState<number | null>(5);
   const [gameStarted, setGameStarted] = useState(false);
   const [board, setBoard] = useState<Cell[][]>([]);
   const [knightPos, setKnightPos] = useState<Position | null>(null);
@@ -116,9 +123,14 @@ export default function KnightGame() {
   const [gameStartTime, setGameStartTime] = useState<Date | null>(null);
   const [gameEnded, setGameEnded] = useState(false);
 
-  const elapsedTime = useGameTimer(gameStarted, gameStartTime, gameEnded);
+  const elapsedTime = useGameTimer(
+    gameStarted,
+    gameStartTime,
+    gameEnded,
+    boardSize
+  );
 
-  // ====== 게임 초기화 함수 ======
+  // ====== 게임 초기화 함수들 ======
   const initializeBoard = useCallback((size: number): Cell[][] => {
     const newBoard: Cell[][] = [];
     for (let row = 0; row < size; row++) {
@@ -153,9 +165,10 @@ export default function KnightGame() {
   const startNewGame = useCallback(() => {
     if (!boardSize) return;
     resetGame();
+    setGameStartTime(new Date());
   }, [boardSize, resetGame]);
 
-  // ====== 보드 크기 변경 처리 ======
+  // ====== 게임 로직 함수들 ======
   const handleBoardSizeChange = useCallback(
     (newSize: number) => {
       setBoardSize(newSize);
@@ -166,12 +179,24 @@ export default function KnightGame() {
         setMoveCount(1);
         setPossibleMoves([]);
         setHistory([]);
+        setGameStartTime(new Date());
+        setGameEnded(false);
       }
     },
     [gameStarted, initializeBoard]
   );
 
-  // ====== 셀 클릭 처리 ======
+  const handleUndo = useCallback(() => {
+    if (history.length === 0) return;
+
+    const lastState = history[history.length - 1];
+    setBoard(lastState.board.map((r) => r.map((cell) => ({ ...cell }))));
+    setKnightPos(lastState.knightPos);
+    setMoveCount(lastState.moveCount);
+    setPossibleMoves(lastState.possibleMoves);
+    setHistory((prev) => prev.slice(0, prev.length - 1));
+  }, [history]);
+
   const handleCellClick = useCallback(
     (row: number, col: number) => {
       if (!gameStarted) return;
@@ -227,22 +252,18 @@ export default function KnightGame() {
         setPossibleMoves(getValidMoves(row, col, board, boardSize!));
       }, 0);
     },
-    [gameStarted, knightPos, board, boardSize, moveCount, possibleMoves]
+    [
+      gameStarted,
+      knightPos,
+      board,
+      boardSize,
+      moveCount,
+      possibleMoves,
+      handleUndo,
+    ]
   );
 
-  // ====== Undo 처리 ======
-  const handleUndo = useCallback(() => {
-    if (history.length === 0) return;
-
-    const lastState = history[history.length - 1];
-    setBoard(lastState.board.map((r) => r.map((cell) => ({ ...cell }))));
-    setKnightPos(lastState.knightPos);
-    setMoveCount(lastState.moveCount);
-    setPossibleMoves(lastState.possibleMoves);
-    setHistory((prev) => prev.slice(0, prev.length - 1));
-  }, [history]);
-
-  // ====== 게임 종료/성공 판정 ======
+  // ====== 게임 상태 감지 ======
   useEffect(() => {
     if (!gameStarted || !knightPos) return;
 
@@ -260,7 +281,7 @@ export default function KnightGame() {
     }
   }, [possibleMoves, gameStarted, knightPos, board, boardSize]);
 
-  // ====== 보드 렌더링 ======
+  // ====== 렌더링 함수들 ======
   const renderBoard = useCallback(() => {
     return (
       <div className="flex justify-center">
@@ -309,7 +330,49 @@ export default function KnightGame() {
     );
   }, [board, boardSize, knightPos, possibleMoves, handleCellClick]);
 
-  // ====== UI 렌더링 ======
+  const renderGameInfo = useCallback(() => {
+    return (
+      <div className="flex items-center justify-center gap-6 text-sm text-gray-600">
+        <div>
+          <b>{board.flat().filter((cell) => cell.visitedOrder).length}</b>
+          {" / "}
+          <b>{boardSize! * boardSize!}</b>
+        </div>
+        <div>
+          <b>{formatTime(elapsedTime)}</b>
+        </div>
+      </div>
+    );
+  }, [board, boardSize, elapsedTime]);
+
+  const renderGameDescription = useCallback(() => {
+    return (
+      <div>
+        <div className="flex justify-end ">
+          <button
+            onClick={() => setShowDescription(!showDescription)}
+            className="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center transition-colors flex-shrink-0"
+            title="게임 설명"
+          >
+            <span className="text-sm font-bold">?</span>
+          </button>
+        </div>
+        {showDescription && (
+          <div className="flex-1 p-4 bg-blue-50 rounded-lg border border-blue-200 mt-2">
+            <p className="text-blue-700 text-sm leading-relaxed">
+              &apos;기사의 여행(Knight&apos;s Tour)&apos;은 체스판 위에서 체스
+              기물 중 <strong>나이트(기사)</strong>가 움직이는 퍼즐 게임입니다.{" "}
+              <br />
+              모든 칸을 한 번씩만 방문하면서 나이트의 이동 규칙(L자 형태)으로
+              체스판을 순회해야 합니다.
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }, [showDescription]);
+
+  // ====== 메인 UI 렌더링 ======
   return (
     <div className="p-6 max-w-[920px] mx-auto">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">
@@ -318,76 +381,41 @@ export default function KnightGame() {
 
       <div className="space-y-6">
         {/* 게임 설정 */}
-        <div className="modern-border p-4 bg-gray-50 rounded-lg">
-          <div className="space-y-4">
-            <div>
-              <label className="font-semibold text-gray-700 block mb-2">
-                보드 크기 선택:
-              </label>
-              <select
-                onChange={(e) => handleBoardSizeChange(Number(e.target.value))}
-                className="w-full modern-border-sm p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-              >
-                <option value="">선택하세요</option>
-                {BOARD_SIZES.map((size) => (
-                  <option key={size} value={size}>
-                    {size} x {size}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed w-full"
-              onClick={gameStarted ? startNewGame : startGame}
-              disabled={!boardSize}
+        <div className="space-y-4">
+          <div>
+            <select
+              value={boardSize || ""}
+              onChange={(e) => handleBoardSizeChange(Number(e.target.value))}
+              className="w-full modern-border-sm p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
             >
-              {gameStarted ? "새 게임" : "게임 시작"}
-            </button>
+              {BOARD_SIZES.map((size) => (
+                <option key={size} value={size}>
+                  {size} x {size}
+                </option>
+              ))}
+            </select>
           </div>
+
+          <button
+            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed w-full"
+            onClick={gameStarted ? startNewGame : startGame}
+            disabled={!boardSize}
+          >
+            {gameStarted ? "새 게임" : "게임 시작"}
+          </button>
         </div>
+
+        <hr className="my-6 border-t border-gray-200" />
 
         {/* 게임 화면 */}
         {gameStarted && (
           <div className="space-y-4">
-            {/* 게임 정보 */}
-            <div className="flex items-center justify-center gap-6 text-sm text-gray-600">
-              <div>
-                <b>{board.flat().filter((cell) => cell.visitedOrder).length}</b>
-                {" / "}
-                <b>{boardSize! * boardSize!}</b> 칸 방문
-              </div>
-              <div>
-                시간: <b>{formatTime(elapsedTime)}</b>
-              </div>
-            </div>
-
-            {/* 보드 */}
+            {renderGameInfo()}
             {renderBoard()}
-
-            {/* 게임 설명 */}
-            <div className="flex items-start gap-2">
-              <button
-                onClick={() => setShowDescription(!showDescription)}
-                className="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center transition-colors flex-shrink-0"
-                title="게임 설명"
-              >
-                <span className="text-sm font-bold">?</span>
-              </button>
-
-              {showDescription && (
-                <div className="flex-1 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-blue-700 text-sm leading-relaxed">
-                    &apos;기사의 여행(Knight&apos;s Tour)&apos;은 체스판 위에서
-                    체스 기물 중 <strong>나이트(기사)</strong>가 움직이는 퍼즐
-                    게임입니다. 모든 칸을 한 번씩만 방문하면서 나이트의 이동
-                    규칙(L자 형태)으로 체스판을 순회해야 합니다.
-                  </p>
-                </div>
-              )}
-            </div>
           </div>
         )}
+
+        {renderGameDescription()}
       </div>
     </div>
   );
