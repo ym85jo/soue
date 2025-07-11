@@ -94,12 +94,12 @@ function getLineupTable(
   return { header, rows };
 }
 
-function getToday(){
+function getToday() {
   const today = new Date();
   const yyyy = today.getFullYear();
   const mm = String(today.getMonth() + 1).padStart(2, "0");
   const dd = String(today.getDate()).padStart(2, "0");
-  return`${yyyy}.${mm}.${dd}`;
+  return `${yyyy}.${mm}.${dd}`;
 }
 
 export default function Team2Page() {
@@ -209,9 +209,14 @@ export default function Team2Page() {
   const handleAddPlayers = () => {
     const names = textareaValue
       .split("\n")
-      .map((name) => name.trim())
+      .map((name) => name.replace(/[^가-힣a-zA-Z]/g, ""))
       .filter((name) => name.length > 0);
-    if (names.length === 0) return;
+    if (names.length === 0) {
+      toast.error(
+        `선수 이름을 입력해주세요. (한글, 영문만 허용하며 숫자, 특수문자 등은 제거합니다.)`
+      );
+      return;
+    }
     // 현재 대기자+팀에 있는 모든 선수의 ord 중 최대값 구하기
     const allPlayers = [...waitingList, ...Object.values(teams).flat()];
     const maxOrd =
@@ -240,7 +245,7 @@ export default function Team2Page() {
     if (dragOverTarget === target) setDragOverTarget(null);
   };
 
-  // 
+  //
   const handleDrop = (to: string) => {
     setDragOverTarget(null);
     if (!dragItem.current) return;
@@ -284,10 +289,6 @@ export default function Team2Page() {
     toast.success(`${player.name} 선수가 삭제되었습니다.`);
     dragItem.current = null;
   };
-
-
-
-
 
   // 경기 설정 UI
   const renderGameSettings = () => (
@@ -486,26 +487,30 @@ export default function Team2Page() {
           <tr>
             <td
               className="modern-border px-1 bg-blue-50 text-center"
-              style={{"borderRadius" : "0"}}
+              style={{ borderRadius: "0" }}
             >
               <button
                 className="cursor-point"
                 onClick={() => {
-                  setKeeperEnabled({...keeperEnabled, [teamKey] : !keeperEnabled[teamKey]})
-                  if(keeperEnabled[teamKey]){
+                  setKeeperEnabled({
+                    ...keeperEnabled,
+                    [teamKey]: !keeperEnabled[teamKey],
+                  });
+                  if (keeperEnabled[teamKey]) {
                     toast.success(`${teamKey}에 고정키퍼가 있습니다.`);
                   } else {
                     toast.success(`${teamKey}에 키퍼 순서를 추가했습니다.`);
                   }
-                  
                 }}
-              >Keep</button>
+              >
+                Keep
+              </button>
             </td>
             {table.header.map((name: string, idx: number) => (
               <td
                 key={idx}
                 className="modern-border py-1.5 bg-blue-50 text-center"
-                style={{"borderRadius" : "0"}}
+                style={{ borderRadius: "0" }}
               >
                 {name}
               </td>
@@ -518,7 +523,7 @@ export default function Team2Page() {
               <tr key={i}>
                 <td
                   className="modern-border px-1 py-1.5 bg-blue-50 text-center"
-                  style={{"borderRadius" : "0"}}
+                  style={{ borderRadius: "0" }}
                 >
                   {row.game}경기
                 </td>
@@ -532,7 +537,7 @@ export default function Team2Page() {
                         ? "text-red-600"
                         : "text-gray-500"
                     } ${i % 2 === 1 ? "bg-lime-50" : ""}`}
-                    style={{"borderRadius" : "0"}}
+                    style={{ borderRadius: "0" }}
                   >
                     {cell}
                   </td>
@@ -558,8 +563,12 @@ export default function Team2Page() {
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-xl font-bold">
             Line Up
-            <span className="text-sm ml-2" style={{fontWeight : "normal", color : "gray"}}>{ getToday()}</span>
-            
+            <span
+              className="text-sm ml-2"
+              style={{ fontWeight: "normal", color: "gray" }}
+            >
+              {getToday()}
+            </span>
           </h2>
           <button
             className="text-gray-500 hover:text-gray-700 text-2xl"
