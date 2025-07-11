@@ -638,7 +638,7 @@ export default function Team2Page() {
             ×
           </button>
         </div>
-        <div className="overflow-x-auto">
+        <div className="">
           {Array.from({ length: 4 }).map((_, idx) => {
             const teamKey = `team${idx + 1}`;
             const teamPlayers = teams[teamKey] || [];
@@ -647,7 +647,7 @@ export default function Team2Page() {
             if (teamPlayers.length === 0) return null;
 
             return (
-              <div key={teamKey} className="mb-2">
+              <div key={teamKey} className={`mb-2 ${idx === 0 ? "" : "mt-6"}`}>
                 <h3
                   className="font-semibold mb-2 px-2 py-1 rounded cursor-pointer"
                   style={getTeamHeaderStyle(teamKey)}
@@ -803,7 +803,7 @@ export default function Team2Page() {
             <div className="flex gap-2">
               <div className="">
                 <select
-                  className="modern-border-sm p-2 w-full "
+                  className="modern-border-sm p-1 w-full "
                   value={teamCount}
                   onChange={(e) => setTeamCount(Number(e.target.value))}
                 >
@@ -815,7 +815,7 @@ export default function Team2Page() {
 
               <button
                 type="button"
-                className="bg-gray-600 text-white px-2 py-1  rounded hover:bg-gray-700 transition "
+                className="bg-gray-600 text-white px-2 py-0  rounded hover:bg-gray-700 transition "
                 onClick={handleRandomAssignment}
               >
                 RANDOM
