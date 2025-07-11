@@ -77,15 +77,15 @@ function getLineupTable(
   // 표 데이터 생성
   const rows = [];
   for (let i = 0; i < gameCount; i++) {
-    const cells: ("P" | "K" | "R")[] = [];
+    const cells: ("⚽" | "🖐️" | "🚫")[] = [];
     for (let idx = 0; idx < totalCnt; idx++) {
       if (playArray[i].includes(idx)) {
-        cells.push("P");
+        cells.push("⚽");
       } else {
         if (useKeeper && keeperPlayer[i] === idx) {
-          cells.push("K");
+          cells.push("🖐️");
         } else {
-          cells.push("R");
+          cells.push("🚫");
         }
       }
     }
@@ -130,8 +130,11 @@ export default function Team2Page() {
   const [showLineupModal, setShowLineupModal] = useState(false);
   const dragItem = useRef<{ player: Player; from: string } | null>(null);
   const [dragOverTarget, setDragOverTarget] = useState<string | null>(null);
-  const teamCountRef = useRef<HTMLSelectElement>(null);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [teamCount, setTeamCount] = useLocalStorage<number>(
+    "team2-team-count",
+    2
+  );
 
   // 반드시 여기서 선언!
   const getTeamHeaderStyle = (teamKey: string) => ({
@@ -143,7 +146,7 @@ export default function Team2Page() {
 
   // 팀 개수 변경 시 상태 초기화
   React.useEffect(() => {
-    if (teamCountRef.current && Number(teamCountRef.current.value) !== 4) {
+    if (teamCount !== 4) {
       // 기존 팀에 있던 모든 선수들을 대기자 명단으로 이동
       const allPlayers = Object.values(teams).flat();
       setWaitingList((prev) => [...prev, ...allPlayers]);
@@ -152,7 +155,33 @@ export default function Team2Page() {
       setKeeperEnabled(createDefaultKeeper(4));
     }
     // eslint-disable-next-line
-  }, []);
+  }, [teamCount]);
+
+  // 모바일 뒤로 가기 버튼 처리
+  React.useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (showLineupModal) {
+        event.preventDefault();
+        setShowLineupModal(false);
+        // 브라우저 히스토리에 현재 상태 추가
+        window.history.pushState(null, "", window.location.pathname);
+      }
+      if (showSummaryModal) {
+        event.preventDefault();
+        setShowSummaryModal(false);
+        // 브라우저 히스토리에 현재 상태 추가
+        window.history.pushState(null, "", window.location.pathname);
+      }
+    };
+
+    // 모달이 열릴 때 히스토리에 상태 추가
+    if (showLineupModal || showSummaryModal) {
+      window.history.pushState(null, "", window.location.pathname);
+    }
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [showLineupModal, showSummaryModal]);
 
   // 팀 색상 변경
   const handleTeamColorChange = (teamKey: string) => {
@@ -163,11 +192,11 @@ export default function Team2Page() {
       const nextIdx = (currentIdx + 1) % BACKGROUND_COLORS.length;
       return { ...prev, [teamKey]: BACKGROUND_COLORS[nextIdx] };
     });
+    toast.success(`${teamKey} 팀 색상이 변경되었습니다.`);
   };
 
   // 랜덤 배정
   const handleRandomAssignment = () => {
-    const teamCount = Number(teamCountRef.current?.value || 4);
     const allPlayers = [...waitingList, ...Object.values(teams).flat()];
     if (allPlayers.length === 0) return;
     const shuffled = [...allPlayers].sort(() => Math.random() - 0.5);
@@ -179,7 +208,7 @@ export default function Team2Page() {
     });
     setTeams(newTeams);
     setWaitingList([]);
-    toast.success("랜덤 배정이 완료되었습니다.");
+    toast.success(`${teamCount}개 팀으로 랜덤 배정이 완료되었습니다.`);
   };
 
   // 초기화
@@ -194,6 +223,7 @@ export default function Team2Page() {
     setKeeperEnabled(createDefaultKeeper(4));
     setPlayerCount(5);
     setGameCount(8);
+    setTeamCount(2);
     if (typeof window !== "undefined") {
       localStorage.removeItem("team2-waiting-list");
       localStorage.removeItem("team2-teams");
@@ -201,8 +231,9 @@ export default function Team2Page() {
       localStorage.removeItem("team2-keeper-enabled");
       localStorage.removeItem("team2-player-count");
       localStorage.removeItem("team2-game-count");
+      localStorage.removeItem("team2-team-count");
     }
-    toast.success("초기화 되었습니다.");
+    toast.success("모든 데이터가 초기화되었습니다.");
   };
 
   // 선수 추가
@@ -230,7 +261,7 @@ export default function Team2Page() {
     }));
     setWaitingList((prev) => [...prev, ...newPlayers]);
     setTextareaValue("");
-    toast.success(`${names.length}명의 선수가 추가되었습니다.`);
+    toast.success(`${names.length}명의 선수가 대기자 명단에 추가되었습니다.`);
   };
 
   // 드래그/드롭
@@ -254,21 +285,28 @@ export default function Team2Page() {
     if (from === "waiting" && to.startsWith("team")) {
       setWaitingList((prev) => prev.filter((p) => p.id !== player.id));
       setTeams((prev) => ({ ...prev, [to]: [...(prev[to] || []), player] }));
-      toast.success(`${player.name} 선수가 팀 ${to}에 추가되었습니다.`);
+      toast.success(
+        `${player.name} 선수가 팀 ${to.replace("team", "")}에 추가되었습니다.`
+      );
     } else if (from.startsWith("team") && to === "waiting") {
       setTeams((prev) => ({
         ...prev,
         [from]: (prev[from] || []).filter((p) => p.id !== player.id),
       }));
       setWaitingList((prev) => [...prev, player]);
-      toast.success(`${player.name} 선수가 대기자 명단에 추가되었습니다.`);
+      toast.success(`${player.name} 선수가 대기자 명단으로 이동되었습니다.`);
     } else if (from.startsWith("team") && to.startsWith("team")) {
       setTeams((prev) => {
         const newFrom = (prev[from] || []).filter((p) => p.id !== player.id);
         const newTo = [...(prev[to] || []), player];
         return { ...prev, [from]: newFrom, [to]: newTo };
       });
-      toast.success(`${player.name} 선수가 팀 ${to}로 이동되었습니다.`);
+      toast.success(
+        `${player.name} 선수가 팀 ${from.replace(
+          "team",
+          ""
+        )}에서 팀 ${to.replace("team", "")}로 이동되었습니다.`
+      );
     }
     dragItem.current = null;
   };
@@ -286,7 +324,7 @@ export default function Team2Page() {
     } else if (from === "waiting") {
       setWaitingList((prev) => prev.filter((p) => p.id !== player.id));
     }
-    toast.success(`${player.name} 선수가 삭제되었습니다.`);
+    toast.success(`${player.name} 선수가 영구적으로 삭제되었습니다.`);
     dragItem.current = null;
   };
 
@@ -301,7 +339,12 @@ export default function Team2Page() {
           id="playerCount"
           className="modern-border-sm p-2"
           value={playerCount}
-          onChange={(e) => setPlayerCount(Number(e.target.value))}
+          onChange={(e) => {
+            setPlayerCount(Number(e.target.value));
+            toast.success(
+              `필드 인원이 ${e.target.value}명으로 변경되었습니다.`
+            );
+          }}
         >
           {PLAYER_COUNT_OPTIONS.map((opt) => (
             <option key={opt} value={opt}>
@@ -318,7 +361,12 @@ export default function Team2Page() {
           id="gameCount"
           className="modern-border-sm p-2"
           value={gameCount}
-          onChange={(e) => setGameCount(Number(e.target.value))}
+          onChange={(e) => {
+            setGameCount(Number(e.target.value));
+            toast.success(
+              `총 경기 수가 ${e.target.value}경기로 변경되었습니다.`
+            );
+          }}
         >
           {GAME_COUNT_OPTIONS.map((opt) => (
             <option key={opt} value={opt}>
@@ -336,12 +384,17 @@ export default function Team2Page() {
                 type="checkbox"
                 id={`keeper-${teamKey}`}
                 checked={!!keeperEnabled[teamKey]}
-                onChange={(e) =>
+                onChange={(e) => {
                   setKeeperEnabled((prev) => ({
                     ...prev,
                     [teamKey]: e.target.checked,
-                  }))
-                }
+                  }));
+                  toast.success(
+                    `팀 ${idx + 1} 키퍼 설정이 ${
+                      e.target.checked ? "활성화" : "비활성화"
+                    }되었습니다.`
+                  );
+                }}
                 className="accent-blue-600"
               />
               <label htmlFor={`keeper-${teamKey}`} className="">{`팀 ${
@@ -497,13 +550,23 @@ export default function Team2Page() {
                     [teamKey]: !keeperEnabled[teamKey],
                   });
                   if (keeperEnabled[teamKey]) {
-                    toast.success(`${teamKey}에 고정키퍼가 있습니다.`);
+                    toast.success(
+                      `팀 ${teamKey.replace(
+                        "team",
+                        ""
+                      )} 키퍼 설정이 활성화되었습니다.`
+                    );
                   } else {
-                    toast.success(`${teamKey}에 키퍼 순서를 추가했습니다.`);
+                    toast.success(
+                      `팀 ${teamKey.replace(
+                        "team",
+                        ""
+                      )} 키퍼 설정이 비활성화되었습니다.`
+                    );
                   }
                 }}
               >
-                Keep
+                🥅
               </button>
             </td>
             {table.header.map((name: string, idx: number) => (
@@ -519,7 +582,10 @@ export default function Team2Page() {
         </thead>
         <tbody>
           {table.rows.map(
-            (row: { game: number; cells: ("P" | "K" | "R")[] }, i: number) => (
+            (
+              row: { game: number; cells: ("⚽" | "🖐️" | "🚫")[] },
+              i: number
+            ) => (
               <tr key={i}>
                 <td
                   className="modern-border px-1 py-1.5 bg-blue-50 text-center"
@@ -527,16 +593,12 @@ export default function Team2Page() {
                 >
                   {row.game}경기
                 </td>
-                {row.cells.map((cell: "P" | "K" | "R", j: number) => (
+                {row.cells.map((cell: "⚽" | "🖐️" | "🚫", j: number) => (
                   <td
                     key={j}
-                    className={`modern-border px-2 text-center ${
-                      cell === "P"
-                        ? "text-blue-700"
-                        : cell === "K"
-                        ? "text-red-600"
-                        : "text-gray-500"
-                    } ${i % 2 === 1 ? "bg-lime-50" : ""}`}
+                    className={`modern-border px-2 text-center  ${
+                      i % 2 === 1 ? "bg-lime-50" : ""
+                    }`}
                     style={{ borderRadius: "0" }}
                   >
                     {cell}
@@ -555,6 +617,7 @@ export default function Team2Page() {
     <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
       style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
+      onClick={() => setShowLineupModal(false)}
     >
       <div
         className="bg-white rounded-lg p-2 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto relative"
@@ -572,7 +635,13 @@ export default function Team2Page() {
           </h2>
           <button
             className="text-gray-500 hover:text-gray-700 text-2xl"
-            onClick={() => setShowLineupModal(false)}
+            onClick={() => {
+              setShowLineupModal(false);
+              // 모달 닫을 때 히스토리에서 제거
+              if (window.history.length > 1) {
+                window.history.back();
+              }
+            }}
           >
             ×
           </button>
@@ -580,8 +649,13 @@ export default function Team2Page() {
         <div className="overflow-x-auto">
           {Array.from({ length: 4 }).map((_, idx) => {
             const teamKey = `team${idx + 1}`;
+            const teamPlayers = teams[teamKey] || [];
+
+            // 선수가 없는 팀은 표시하지 않음
+            if (teamPlayers.length === 0) return null;
+
             return (
-              <div key={teamKey} className="mb-6">
+              <div key={teamKey} className="mb-2">
                 <h3
                   className="font-semibold mb-2 px-2 py-1 rounded cursor-pointer"
                   style={getTeamHeaderStyle(teamKey)}
@@ -601,9 +675,19 @@ export default function Team2Page() {
   // 팀 요약 모달 핸들러
   const handleSummaryView = () => {
     const hasPlayers = Object.values(teams).some((team) => team.length > 0);
-    if (hasPlayers) setShowSummaryModal(true);
+    if (hasPlayers) {
+      setShowSummaryModal(true);
+      // 모달 열 때 히스토리에 상태 추가
+      window.history.pushState(null, "", window.location.pathname);
+    }
   };
-  const handleCloseSummaryModal = () => setShowSummaryModal(false);
+  const handleCloseSummaryModal = () => {
+    setShowSummaryModal(false);
+    // 모달 닫을 때 히스토리에서 제거
+    if (window.history.length > 1) {
+      window.history.back();
+    }
+  };
 
   // 팀 요약 모달 렌더 함수
   const renderSummaryModal = () => (
@@ -712,7 +796,7 @@ export default function Team2Page() {
           className="bg-gray-600 text-white p-2 rounded hover:bg-gray-700 transition"
           onClick={handleAddPlayers}
         >
-          선수추가
+          선수 추가
         </button>
         <hr className="my-6 border-t border-gray-200" />
         <div>
@@ -727,9 +811,14 @@ export default function Team2Page() {
             <div className="flex gap-2">
               <div className="">
                 <select
-                  ref={teamCountRef}
                   className="modern-border-sm p-2 w-full "
-                  defaultValue={4}
+                  value={teamCount}
+                  onChange={(e) => {
+                    setTeamCount(Number(e.target.value));
+                    toast.success(
+                      `팀 개수가 ${e.target.value}개로 변경되었습니다.`
+                    );
+                  }}
                 >
                   <option value={2}>2개팀</option>
                   <option value={3}>3개팀</option>
@@ -774,7 +863,11 @@ export default function Team2Page() {
             <button
               type="button"
               className="bg-gray-600 text-white px-2 py-1  rounded hover:bg-gray-700 transition"
-              onClick={() => setShowLineupModal(true)}
+              onClick={() => {
+                setShowLineupModal(true);
+                // 모달 열 때 히스토리에 상태 추가
+                window.history.pushState(null, "", window.location.pathname);
+              }}
             >
               Result
             </button>

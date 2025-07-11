@@ -119,7 +119,7 @@ export default function KnightGame() {
   const [moveCount, setMoveCount] = useState(1);
   const [possibleMoves, setPossibleMoves] = useState<Position[]>([]);
   const [history, setHistory] = useState<GameState[]>([]);
-  const [showDescription, setShowDescription] = useState(false);
+  const [showDescription, setShowDescription] = useState(true);
   const [gameStartTime, setGameStartTime] = useState<Date | null>(null);
   const [gameEnded, setGameEnded] = useState(false);
 
