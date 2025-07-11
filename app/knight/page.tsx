@@ -1,8 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
-// ====== 상수 및 타입 ======
+// ====== 상수 ======
 const BOARD_SIZES = [5, 6, 7, 8, 9, 10];
 const KNIGHT_MOVES = [
   [2, 1],
@@ -15,198 +15,77 @@ const KNIGHT_MOVES = [
   [2, -1],
 ];
 
-type Cell = {
+// ====== 타입 정의 ======
+interface Position {
+  row: number;
+  col: number;
+}
+
+interface Cell {
   row: number;
   col: number;
   visitedOrder?: number;
+}
+
+interface GameState {
+  board: Cell[][];
+  knightPos: Position;
+  moveCount: number;
+  possibleMoves: Position[];
+}
+
+// ====== 유틸리티 함수 ======
+const getCellColor = (row: number, col: number): string => {
+  return (row + col) % 2 === 0 ? "bg-white" : "bg-gray-100";
 };
 
-type Pos = { row: number; col: number };
-
-// ====== 유틸 함수 ======
-function getCellColor(row: number, col: number) {
-  return (row + col) % 2 === 0 ? "bg-white" : "bg-gray-100";
-}
-
-function isSamePos(a: Pos, b: Pos) {
+const isSamePosition = (a: Position, b: Position): boolean => {
   return a.row === b.row && a.col === b.col;
-}
+};
 
-function getValidMoves(
+const getValidMoves = (
   row: number,
   col: number,
   board: Cell[][],
   boardSize: number
-) {
-  const moves: Pos[] = [];
+): Position[] => {
+  const moves: Position[] = [];
+
   for (const [dr, dc] of KNIGHT_MOVES) {
-    const nr = row + dr;
-    const nc = col + dc;
+    const newRow = row + dr;
+    const newCol = col + dc;
+
     if (
-      nr >= 0 &&
-      nc >= 0 &&
-      nr < boardSize &&
-      nc < boardSize &&
-      !board[nr][nc].visitedOrder
+      newRow >= 0 &&
+      newCol >= 0 &&
+      newRow < boardSize &&
+      newCol < boardSize &&
+      !board[newRow][newCol].visitedOrder
     ) {
-      moves.push({ row: nr, col: nc });
+      moves.push({ row: newRow, col: newCol });
     }
   }
+
   return moves;
-}
+};
 
-// ====== 메인 컴포넌트 ======
-export default function KnightGame() {
-  // --- 상태 ---
-  const [boardSize, setBoardSize] = useState<number | null>(null);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [board, setBoard] = useState<Cell[][]>([]);
-  const [knightPos, setKnightPos] = useState<Pos | null>(null);
-  const [moveCount, setMoveCount] = useState(1);
-  const [possibleMoves, setPossibleMoves] = useState<Pos[]>([]);
-  const [history, setHistory] = useState<
-    {
-      board: Cell[][];
-      knightPos: Pos;
-      moveCount: number;
-      possibleMoves: Pos[];
-    }[]
-  >([]);
-  const [showDescription, setShowDescription] = useState(false);
-  const [gameStartTime, setGameStartTime] = useState<Date | null>(null);
+const formatTime = (seconds: number): string => {
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${minutes.toString().padStart(2, "0")}:${secs
+    .toString()
+    .padStart(2, "0")}`;
+};
+
+// ====== 커스텀 훅 ======
+const useGameTimer = (
+  gameStarted: boolean,
+  gameStartTime: Date | null,
+  gameEnded: boolean
+) => {
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [gameEnded, setGameEnded] = useState(false);
 
-  // --- 게임 시작/초기화 ---
-  function startGame() {
-    if (!boardSize) return;
-    const newBoard: Cell[][] = [];
-    for (let r = 0; r < boardSize; r++) {
-      const row: Cell[] = [];
-      for (let c = 0; c < boardSize; c++) row.push({ row: r, col: c });
-      newBoard.push(row);
-    }
-    setBoard(newBoard);
-    setKnightPos(null);
-    setMoveCount(1);
-    setPossibleMoves([]);
-    setHistory([]);
-    setGameStarted(true);
-    setGameStartTime(new Date());
-    setElapsedTime(0);
-    setGameEnded(false);
-  }
-
-  // --- 새 게임 시작 (현재 보드 크기 유지) ---
-  function startNewGame() {
-    if (!boardSize) return;
-    const newBoard: Cell[][] = [];
-    for (let r = 0; r < boardSize; r++) {
-      const row: Cell[] = [];
-      for (let c = 0; c < boardSize; c++) row.push({ row: r, col: c });
-      newBoard.push(row);
-    }
-    setBoard(newBoard);
-    setKnightPos(null);
-    setMoveCount(1);
-    setPossibleMoves([]);
-    setHistory([]);
-    setGameStartTime(new Date());
-    setElapsedTime(0);
-    setGameEnded(false);
-  }
-
-  // --- 보드 크기 변경 시 게임 재시작 ---
-  function handleBoardSizeChange(newSize: number) {
-    setBoardSize(newSize);
-    if (gameStarted) {
-      // 게임이 진행 중이면 새로운 크기로 게임 재시작
-      const newBoard: Cell[][] = [];
-      for (let r = 0; r < newSize; r++) {
-        const row: Cell[] = [];
-        for (let c = 0; c < newSize; c++) row.push({ row: r, col: c });
-        newBoard.push(row);
-      }
-      setBoard(newBoard);
-      setKnightPos(null);
-      setMoveCount(1);
-      setPossibleMoves([]);
-      setHistory([]);
-    }
-  }
-
-  // --- 이동/방문 처리 ---
-  function handleCellClick(row: number, col: number) {
-    if (!gameStarted) return;
-
-    // 기사(말) 아이콘 클릭 시 되돌리기
-    if (knightPos && isSamePos(knightPos, { row, col })) {
-      handleUndo();
-      return;
-    }
-
-    // 초기 위치 선택
-    if (!knightPos) {
-      setKnightPos({ row, col });
-      setBoard((prev) => {
-        const copy = prev.map((r) => r.map((cell) => ({ ...cell })));
-        copy[row][col].visitedOrder = 1;
-        return copy;
-      });
-      setMoveCount(2);
-      setPossibleMoves(getValidMoves(row, col, board, boardSize!));
-      setHistory([]);
-      return;
-    }
-    // 이동 가능한 칸만 이동 허용
-    const isValid = possibleMoves.some((m) => m.row === row && m.col === col);
-    if (!isValid) return;
-    // 현재 상태 저장 (undo용)
-    setHistory((prev) => [
-      ...prev,
-      {
-        board: board.map((r) => r.map((cell) => ({ ...cell }))),
-        knightPos: { ...knightPos },
-        moveCount,
-        possibleMoves: [...possibleMoves],
-      },
-    ]);
-    // 이동 처리
-    setKnightPos({ row, col });
-    setBoard((prev) => {
-      const copy = prev.map((r) => r.map((cell) => ({ ...cell })));
-      copy[row][col].visitedOrder = moveCount;
-      return copy;
-    });
-    setMoveCount(moveCount + 1);
-    // 다음 이동 가능한 칸 계산
-    setTimeout(() => {
-      setPossibleMoves(getValidMoves(row, col, board, boardSize!));
-    }, 0);
-  }
-
-  // --- Undo ---
-  function handleUndo() {
-    if (history.length === 0) return;
-    const last = history[history.length - 1];
-    setBoard(last.board.map((r) => r.map((cell) => ({ ...cell }))));
-    setKnightPos(last.knightPos);
-    setMoveCount(last.moveCount);
-    setPossibleMoves(last.possibleMoves);
-    setHistory((prev) => prev.slice(0, prev.length - 1));
-  }
-
-  // --- 시간 포맷 함수 ---
-  function formatTime(seconds: number): string {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
-  }
-
-  // --- 타이머 업데이트 ---
-  React.useEffect(() => {
+  useEffect(() => {
     if (!gameStarted || !gameStartTime || gameEnded) return;
 
     const interval = setInterval(() => {
@@ -220,50 +99,199 @@ export default function KnightGame() {
     return () => clearInterval(interval);
   }, [gameStarted, gameStartTime, gameEnded]);
 
-  // --- 게임 종료/성공 판정 ---
-  React.useEffect(() => {
+  return elapsedTime;
+};
+
+// ====== 메인 컴포넌트 ======
+export default function KnightGame() {
+  // ====== 상태 관리 ======
+  const [boardSize, setBoardSize] = useState<number | null>(null);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [board, setBoard] = useState<Cell[][]>([]);
+  const [knightPos, setKnightPos] = useState<Position | null>(null);
+  const [moveCount, setMoveCount] = useState(1);
+  const [possibleMoves, setPossibleMoves] = useState<Position[]>([]);
+  const [history, setHistory] = useState<GameState[]>([]);
+  const [showDescription, setShowDescription] = useState(false);
+  const [gameStartTime, setGameStartTime] = useState<Date | null>(null);
+  const [gameEnded, setGameEnded] = useState(false);
+
+  const elapsedTime = useGameTimer(gameStarted, gameStartTime, gameEnded);
+
+  // ====== 게임 초기화 함수 ======
+  const initializeBoard = useCallback((size: number): Cell[][] => {
+    const newBoard: Cell[][] = [];
+    for (let row = 0; row < size; row++) {
+      const boardRow: Cell[] = [];
+      for (let col = 0; col < size; col++) {
+        boardRow.push({ row, col });
+      }
+      newBoard.push(boardRow);
+    }
+    return newBoard;
+  }, []);
+
+  const resetGame = useCallback(() => {
+    if (!boardSize) return;
+
+    const newBoard = initializeBoard(boardSize);
+    setBoard(newBoard);
+    setKnightPos(null);
+    setMoveCount(1);
+    setPossibleMoves([]);
+    setHistory([]);
+    setGameStartTime(new Date());
+    setGameEnded(false);
+  }, [boardSize, initializeBoard]);
+
+  const startGame = useCallback(() => {
+    if (!boardSize) return;
+    resetGame();
+    setGameStarted(true);
+  }, [boardSize, resetGame]);
+
+  const startNewGame = useCallback(() => {
+    if (!boardSize) return;
+    resetGame();
+  }, [boardSize, resetGame]);
+
+  // ====== 보드 크기 변경 처리 ======
+  const handleBoardSizeChange = useCallback(
+    (newSize: number) => {
+      setBoardSize(newSize);
+      if (gameStarted) {
+        const newBoard = initializeBoard(newSize);
+        setBoard(newBoard);
+        setKnightPos(null);
+        setMoveCount(1);
+        setPossibleMoves([]);
+        setHistory([]);
+      }
+    },
+    [gameStarted, initializeBoard]
+  );
+
+  // ====== 셀 클릭 처리 ======
+  const handleCellClick = useCallback(
+    (row: number, col: number) => {
+      if (!gameStarted) return;
+
+      // 기사 아이콘 클릭 시 되돌리기
+      if (knightPos && isSamePosition(knightPos, { row, col })) {
+        handleUndo();
+        return;
+      }
+
+      // 초기 위치 선택
+      if (!knightPos) {
+        setKnightPos({ row, col });
+        setBoard((prev) => {
+          const copy = prev.map((r) => r.map((cell) => ({ ...cell })));
+          copy[row][col].visitedOrder = 1;
+          return copy;
+        });
+        setMoveCount(2);
+        setPossibleMoves(getValidMoves(row, col, board, boardSize!));
+        setHistory([]);
+        return;
+      }
+
+      // 이동 가능한 칸만 이동 허용
+      const isValid = possibleMoves.some((move) =>
+        isSamePosition(move, { row, col })
+      );
+      if (!isValid) return;
+
+      // 현재 상태 저장 (undo용)
+      setHistory((prev) => [
+        ...prev,
+        {
+          board: board.map((r) => r.map((cell) => ({ ...cell }))),
+          knightPos: { ...knightPos },
+          moveCount,
+          possibleMoves: [...possibleMoves],
+        },
+      ]);
+
+      // 이동 처리
+      setKnightPos({ row, col });
+      setBoard((prev) => {
+        const copy = prev.map((r) => r.map((cell) => ({ ...cell })));
+        copy[row][col].visitedOrder = moveCount;
+        return copy;
+      });
+      setMoveCount(moveCount + 1);
+
+      // 다음 이동 가능한 칸 계산
+      setTimeout(() => {
+        setPossibleMoves(getValidMoves(row, col, board, boardSize!));
+      }, 0);
+    },
+    [gameStarted, knightPos, board, boardSize, moveCount, possibleMoves]
+  );
+
+  // ====== Undo 처리 ======
+  const handleUndo = useCallback(() => {
+    if (history.length === 0) return;
+
+    const lastState = history[history.length - 1];
+    setBoard(lastState.board.map((r) => r.map((cell) => ({ ...cell }))));
+    setKnightPos(lastState.knightPos);
+    setMoveCount(lastState.moveCount);
+    setPossibleMoves(lastState.possibleMoves);
+    setHistory((prev) => prev.slice(0, prev.length - 1));
+  }, [history]);
+
+  // ====== 게임 종료/성공 판정 ======
+  useEffect(() => {
     if (!gameStarted || !knightPos) return;
+
     const totalCells = boardSize! * boardSize!;
     const visitedCells = board
       .flat()
       .filter((cell) => cell.visitedOrder).length;
+
     if (visitedCells === totalCells) {
-      // 모든 칸 방문 성공
       toast.success("축하합니다! 모든 칸을 방문했습니다.");
       setGameEnded(true);
     } else if (possibleMoves.length === 0) {
-      // 이동 불가(실패)
       toast.error("더 이상 이동할 수 없습니다. 게임 오버!");
       setGameEnded(true);
     }
   }, [possibleMoves, gameStarted, knightPos, board, boardSize]);
 
-  // --- 렌더링 함수 ---
-  function renderBoard() {
+  // ====== 보드 렌더링 ======
+  const renderBoard = useCallback(() => {
     return (
       <div className="flex justify-center">
         <div
           className="grid gap-1 p-4 bg-gray-50 modern-border"
           style={{ gridTemplateColumns: `repeat(${boardSize}, 40px)` }}
         >
-          {board.map((row, rIdx) =>
-            row.map((cell, cIdx) => {
+          {board.map((row, rowIdx) =>
+            row.map((cell, colIdx) => {
               const isKnight =
-                knightPos && isSamePos(knightPos, { row: rIdx, col: cIdx });
-              const highlight = possibleMoves.some((m) =>
-                isSamePos(m, { row: rIdx, col: cIdx })
+                knightPos &&
+                isSamePosition(knightPos, { row: rowIdx, col: colIdx });
+              const isHighlighted = possibleMoves.some((move) =>
+                isSamePosition(move, { row: rowIdx, col: colIdx })
               );
+
               return (
                 <div
-                  key={`${rIdx}-${cIdx}`}
-                  className={`w-10 h-10 border flex items-center justify-center cursor-pointer ${getCellColor(
-                    rIdx,
-                    cIdx
-                  )} ${highlight ? "ring-2 ring-blue-400 bg-blue-50" : ""} ${
-                    !knightPos && !cell.visitedOrder ? "hover:bg-blue-100" : ""
-                  } transition-colors`}
-                  onClick={() => handleCellClick(rIdx, cIdx)}
-                  style={{ position: "relative" }}
+                  key={`${rowIdx}-${colIdx}`}
+                  className={`
+                    w-10 h-10 border flex items-center justify-center cursor-pointer 
+                    ${getCellColor(rowIdx, colIdx)}
+                    ${isHighlighted ? "ring-2 ring-blue-400 bg-blue-50" : ""}
+                    ${
+                      !knightPos && !cell.visitedOrder
+                        ? "hover:bg-blue-100"
+                        : ""
+                    }
+                    transition-colors
+                  `}
+                  onClick={() => handleCellClick(rowIdx, colIdx)}
                 >
                   {isKnight ? (
                     <span className="text-xl">♞</span>
@@ -279,23 +307,26 @@ export default function KnightGame() {
         </div>
       </div>
     );
-  }
+  }, [board, boardSize, knightPos, possibleMoves, handleCellClick]);
 
-  // --- UI ---
+  // ====== UI 렌더링 ======
   return (
     <div className="p-6 max-w-[920px] mx-auto">
-      <h1 className="text-2xl">기사의 여행 (Knight&apos;s Tour)</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">
+        기사의 여행 (Knight&apos;s Tour)
+      </h1>
 
-      <div className="mt-4 flex flex-col w-full">
-        <div className="modern-border p-4 bg-gray-50">
-          <div className="flex flex-col gap-4">
+      <div className="space-y-6">
+        {/* 게임 설정 */}
+        <div className="modern-border p-4 bg-gray-50 rounded-lg">
+          <div className="space-y-4">
             <div>
-              <label className="font-semibold text-gray-700">
+              <label className="font-semibold text-gray-700 block mb-2">
                 보드 크기 선택:
               </label>
               <select
                 onChange={(e) => handleBoardSizeChange(Number(e.target.value))}
-                className="mt-2 w-full modern-border-sm p-2 focus:outline-none"
+                className="w-full modern-border-sm p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
               >
                 <option value="">선택하세요</option>
                 {BOARD_SIZES.map((size) => (
@@ -305,8 +336,9 @@ export default function KnightGame() {
                 ))}
               </select>
             </div>
+
             <button
-              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed w-full"
               onClick={gameStarted ? startNewGame : startGame}
               disabled={!boardSize}
             >
@@ -315,30 +347,36 @@ export default function KnightGame() {
           </div>
         </div>
 
+        {/* 게임 화면 */}
         {gameStarted && (
-          <div className="mt-6 flex flex-col w-full">
-            <div className="flex items-center justify-center mb-4 gap-4">
-              <div className="text-sm text-gray-500">
-                <b>{board.flat().filter((cell) => cell.visitedOrder).length}</b>{" "}
-                / <b>{boardSize! * boardSize!}</b>
+          <div className="space-y-4">
+            {/* 게임 정보 */}
+            <div className="flex items-center justify-center gap-6 text-sm text-gray-600">
+              <div>
+                <b>{board.flat().filter((cell) => cell.visitedOrder).length}</b>
+                {" / "}
+                <b>{boardSize! * boardSize!}</b> 칸 방문
               </div>
-              <div className="text-sm text-gray-500">
+              <div>
                 시간: <b>{formatTime(elapsedTime)}</b>
               </div>
             </div>
 
+            {/* 보드 */}
             {renderBoard()}
 
-            <div className="mt-4 items-center gap-2">
+            {/* 게임 설명 */}
+            <div className="flex items-start gap-2">
               <button
                 onClick={() => setShowDescription(!showDescription)}
-                className="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center transition-colors flex-shrink-0"
                 title="게임 설명"
               >
                 <span className="text-sm font-bold">?</span>
               </button>
+
               {showDescription && (
-                <div className="flex-1 p-4 bg-blue-50 rounded-lg border border-blue-200 mt-2">
+                <div className="flex-1 p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <p className="text-blue-700 text-sm leading-relaxed">
                     &apos;기사의 여행(Knight&apos;s Tour)&apos;은 체스판 위에서
                     체스 기물 중 <strong>나이트(기사)</strong>가 움직이는 퍼즐
