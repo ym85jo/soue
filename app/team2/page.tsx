@@ -144,19 +144,6 @@ export default function Team2Page() {
       : undefined,
   });
 
-  // 팀 개수 변경 시 상태 초기화
-  React.useEffect(() => {
-    if (teamCount !== 4) {
-      // 기존 팀에 있던 모든 선수들을 대기자 명단으로 이동
-      const allPlayers = Object.values(teams).flat();
-      setWaitingList((prev) => [...prev, ...allPlayers]);
-      setTeams(createDefaultTeams(4)); // 팀은 4개로 고정
-      setTeamColors(createDefaultTeamColors(4));
-      setKeeperEnabled(createDefaultKeeper(4));
-    }
-    // eslint-disable-next-line
-  }, [teamCount]);
-
   // 모바일 뒤로 가기 버튼 처리
   React.useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
@@ -330,14 +317,14 @@ export default function Team2Page() {
 
   // 경기 설정 UI
   const renderGameSettings = () => (
-    <div className="flex flex-wrap items-center gap-4 mb-6">
-      <div className="flex items-center gap-2">
+    <div className="">
+      <div className="">
         <label htmlFor="playerCount" className="text-sm">
           필드 인원 수
         </label>
         <select
           id="playerCount"
-          className="modern-border-sm p-2"
+          className="modern-border-sm p-2 w-full mt-2"
           value={playerCount}
           onChange={(e) => {
             setPlayerCount(Number(e.target.value));
@@ -353,13 +340,13 @@ export default function Team2Page() {
           ))}
         </select>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="mt-4">
         <label htmlFor="gameCount" className="text-sm">
           총 경기 수
         </label>
         <select
           id="gameCount"
-          className="modern-border-sm p-2"
+          className="modern-border-sm p-2 w-full mt-2"
           value={gameCount}
           onChange={(e) => {
             setGameCount(Number(e.target.value));
@@ -375,34 +362,39 @@ export default function Team2Page() {
           ))}
         </select>
       </div>
-      <div className="flex items-center gap-4 flex-wrap">
-        {Array.from({ length: 4 }).map((_, idx) => {
-          const teamKey = `team${idx + 1}`;
-          return (
-            <div key={teamKey} className="flex items-center gap-1">
-              <input
-                type="checkbox"
-                id={`keeper-${teamKey}`}
-                checked={!!keeperEnabled[teamKey]}
-                onChange={(e) => {
-                  setKeeperEnabled((prev) => ({
-                    ...prev,
-                    [teamKey]: e.target.checked,
-                  }));
-                  toast.success(
-                    `팀 ${idx + 1} 키퍼 설정이 ${
-                      e.target.checked ? "활성화" : "비활성화"
-                    }되었습니다.`
-                  );
-                }}
-                className="accent-blue-600"
-              />
-              <label htmlFor={`keeper-${teamKey}`} className="">{`팀 ${
-                idx + 1
-              } 키퍼`}</label>
-            </div>
-          );
-        })}
+      <div className="mt-4">
+        <label htmlFor="gameCount" className="text-sm">
+          키퍼 설정 여부
+        </label>
+        <div className="flex gap-6 mt-2">
+          {Array.from({ length: 4 }).map((_, idx) => {
+            const teamKey = `team${idx + 1}`;
+            return (
+              <div key={teamKey} className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  id={`keeper-${teamKey}`}
+                  checked={!!keeperEnabled[teamKey]}
+                  onChange={(e) => {
+                    setKeeperEnabled((prev) => ({
+                      ...prev,
+                      [teamKey]: e.target.checked,
+                    }));
+                    toast.success(
+                      `팀 ${idx + 1} 키퍼 설정이 ${
+                        e.target.checked ? "활성화" : "비활성화"
+                      }되었습니다.`
+                    );
+                  }}
+                  className="accent-blue-600"
+                />
+                <label htmlFor={`keeper-${teamKey}`} className="">{`팀 ${
+                  idx + 1
+                } `}</label>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -777,7 +769,7 @@ export default function Team2Page() {
             className="bg-amber-600 text-white px-2 py-1 rounded hover:bg-amber-700 transition"
             onClick={handleReset}
           >
-            Reset
+            RESET
           </button>
         </div>
       </div>
@@ -813,12 +805,7 @@ export default function Team2Page() {
                 <select
                   className="modern-border-sm p-2 w-full "
                   value={teamCount}
-                  onChange={(e) => {
-                    setTeamCount(Number(e.target.value));
-                    toast.success(
-                      `팀 개수가 ${e.target.value}개로 변경되었습니다.`
-                    );
-                  }}
+                  onChange={(e) => setTeamCount(Number(e.target.value))}
                 >
                   <option value={2}>2개팀</option>
                   <option value={3}>3개팀</option>
@@ -831,7 +818,7 @@ export default function Team2Page() {
                 className="bg-gray-600 text-white px-2 py-1  rounded hover:bg-gray-700 transition "
                 onClick={handleRandomAssignment}
               >
-                Random 배정
+                RANDOM
               </button>
             </div>
           </div>
@@ -847,7 +834,7 @@ export default function Team2Page() {
                 className="bg-gray-600 text-white px-2 py-1  rounded hover:bg-gray-700 transition"
                 onClick={handleSummaryView}
               >
-                Result
+                RESULT
               </button>
             </div>
           </div>
@@ -869,7 +856,7 @@ export default function Team2Page() {
                 window.history.pushState(null, "", window.location.pathname);
               }}
             >
-              Result
+              RESULT
             </button>
           </div>
         </div>
