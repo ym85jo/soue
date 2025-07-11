@@ -19,8 +19,8 @@ export default function Header() {
   // 메뉴 항목을 JSON 배열로 관리
   const menuItems = useMemo(
     () => [
-      { label: "Team", href: "/team" },
-      { label: "Team(Line Up)", href: "/team2" },
+      // { label: "Team", href: "/team" },
+      { label: "Team", href: "/team2" },
       { label: "기사의 여행", href: "/knight" },
       { label: "할 일", href: "/todo" },
       { label: "로또번호 생성기", href: "/lotto" },

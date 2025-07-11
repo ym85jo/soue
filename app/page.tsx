@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 export default function Home() {
   useEffect(() => {
-    window.location.href = "/todo";
+    window.location.href = "/team2";
   }, []);
   return <div className="container"></div>;
 }
