@@ -761,7 +761,7 @@ export default function Team2Page() {
   return (
     <div className="p-6 max-w-[920px] mx-auto">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl">Team 2.</h1>
+        <h1 className="text-2xl">Team</h1>
 
         <div className="flex items-center gap-2">
           <button
