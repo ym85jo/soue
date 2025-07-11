@@ -86,7 +86,7 @@ export default function TodoPage() {
             ref={inputRef}
             type="text"
             className="flex-1 modern-border-sm p-2 focus:outline-none"
-            placeholder="할 일을 입력하세요"
+            placeholder="할 일을 입력하세요!"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
