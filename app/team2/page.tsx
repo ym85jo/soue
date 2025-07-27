@@ -135,6 +135,8 @@ export default function Team2Page() {
     "team2-team-count",
     2
   );
+  const [showShortNames, setShowShortNames] = useState(false);
+  const [showShortNamesLineup, setShowShortNamesLineup] = useState(false);
 
   // 반드시 여기서 선언!
   const getTeamHeaderStyle = (teamKey: string) => ({
@@ -567,7 +569,7 @@ export default function Team2Page() {
                 className="modern-border py-1.5 bg-blue-50 text-center"
                 style={{ borderRadius: "0" }}
               >
-                {name}
+                {showShortNamesLineup ? name.substring(0, 3) : name}
               </td>
             ))}
           </tr>
@@ -617,7 +619,7 @@ export default function Team2Page() {
       >
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-xl font-bold">
-            Line Up
+            LINE UP
             <span
               className="text-sm ml-2"
               style={{ fontWeight: "normal", color: "gray" }}
@@ -660,6 +662,24 @@ export default function Team2Page() {
             );
           })}
         </div>
+
+        <div className="flex mt-2 justify-end">
+          <div className="flex items-center text-xs">
+            <input
+              type="checkbox"
+              id="short-name-checkbox2"
+              className="mr-1"
+              checked={showShortNamesLineup}
+              onChange={(e) => setShowShortNamesLineup(e.target.checked)}
+            />
+            <label
+              htmlFor="short-name-checkbox2"
+              className="select-none cursor-pointer"
+            >
+              3글자만 표시
+            </label>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -693,7 +713,15 @@ export default function Team2Page() {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">팀 요약</h2>
+          <h2 className="text-xl font-bold">
+            TEAM SETUP
+            <span
+              className="text-sm ml-2"
+              style={{ fontWeight: "normal", color: "gray" }}
+            >
+              {getToday()}
+            </span>
+          </h2>
           <button
             onClick={handleCloseSummaryModal}
             className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -745,7 +773,11 @@ export default function Team2Page() {
                           key={`${teamKey}-${rowIndex}`}
                           className="modern-border-sm px-4 py-2 text-center text-xs"
                         >
-                          {player ? player.name : ""}
+                          {player
+                            ? showShortNames
+                              ? player.name.substring(0, 3)
+                              : player.name
+                            : ""}
                         </td>
                       );
                     })}
@@ -754,6 +786,24 @@ export default function Team2Page() {
               })()}
             </tbody>
           </table>
+        </div>
+
+        <div className="flex mt-2 justify-end">
+          <div className="flex items-center text-xs">
+            <input
+              type="checkbox"
+              id="short-name-checkbox"
+              className="mr-1"
+              checked={showShortNames}
+              onChange={(e) => setShowShortNames(e.target.checked)}
+            />
+            <label
+              htmlFor="short-name-checkbox"
+              className="select-none cursor-pointer"
+            >
+              3글자만 표시
+            </label>
+          </div>
         </div>
       </div>
     </div>
@@ -808,6 +858,7 @@ export default function Team2Page() {
                   value={teamCount}
                   onChange={(e) => setTeamCount(Number(e.target.value))}
                 >
+                  <option value={1}>1개팀</option>
                   <option value={2}>2개팀</option>
                   <option value={3}>3개팀</option>
                   <option value={4}>4개팀</option>
@@ -828,7 +879,7 @@ export default function Team2Page() {
         <hr className="my-6 border-t border-gray-200" />
         <div>
           <div className="flex justify-between items-center">
-            <h1 className="text-lg">팀 리스트</h1>
+            <h1 className="text-lg">TEAM SETUP</h1>
             <div>
               <button
                 type="button"
@@ -845,7 +896,7 @@ export default function Team2Page() {
         <hr className="my-6 border-t border-gray-200" />
 
         <div className="flex justify-between items-center">
-          <h1 className="text-lg">Line Up</h1>
+          <h1 className="text-lg">LINE UP</h1>
 
           <div className="">
             <button
