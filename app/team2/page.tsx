@@ -715,11 +715,12 @@ export default function Team2Page() {
                   return (
                     <th
                       key={teamKey}
-                      className="modern-border-sm px-2 py-2 text-center font-semibold"
+                      className="modern-border-sm px-2 py-2 text-center font-semibold cursor-pointer"
                       style={{
                         ...getTeamHeaderStyle(teamKey),
                         borderRadius: 0,
                       }}
+                      onClick={() => handleTeamColorChange(teamKey)}
                     >
                       {`팀 ${idx + 1}`}
                     </th>
