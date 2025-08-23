@@ -21,6 +21,7 @@ export default function Header() {
     () => [
       // { label: "Team", href: "/team" },
       { label: "Team", href: "/team2" },
+      { label: "Team(300FC)", href: "/300fc" },
       { label: "기사의 여행", href: "/knight" },
       { label: "할 일", href: "/todo" },
       { label: "로또번호 생성기", href: "/lotto" },
