@@ -29,10 +29,10 @@ function createDefaultTeamColors(teamCount: number) {
 
 function getToday() {
   const today = new Date();
-  const yyyy = today.getFullYear();
+  const yy = String(today.getFullYear()).slice(-2);
   const mm = String(today.getMonth() + 1).padStart(2, "0");
   const dd = String(today.getDate()).padStart(2, "0");
-  return `${yyyy}.${mm}.${dd}`;
+  return `${mm}.${dd}`;
 }
 
 export default function Team6Page() {
@@ -394,14 +394,13 @@ export default function Team6Page() {
           <h2 className="text-xl font-bold">
             300FC
             <span
-              className="text-sm ml-2"
+              className="text-sm ml-1"
               style={{ fontWeight: "normal", color: "gray" }}
             >
               {getToday()}
             </span>
-            <div className=" ml-4 inline-block">
+            <div className=" ml-2 inline-block">
               <div className="flex gap-1 align-middle text-sm">
-                |
                 <label className="cursor-pointer">
                   <input type="checkbox" className="peer hidden" />
                   <span className="flex items-center justify-center border rounded px-2 bg-gray-100 text-gray-800 peer-checked:bg-green-300 peer-checked:text-black peer-checked:font-semibold">
@@ -427,7 +426,6 @@ export default function Team6Page() {
                     1-1
                   </span>
                 </label>
-                |
               </div>
             </div>
           </h2>
