@@ -390,15 +390,46 @@ export default function Team6Page() {
         className="bg-white rounded-lg p-4 max-w-[520px] mx-4 max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold">
-            TEAM SETUP
+            300FC
             <span
               className="text-sm ml-2"
               style={{ fontWeight: "normal", color: "gray" }}
             >
               {getToday()}
             </span>
+            <div className=" ml-4 inline-block">
+              <div className="flex gap-1 align-middle text-sm">
+                |
+                <label className="cursor-pointer">
+                  <input type="checkbox" className="peer hidden" />
+                  <span className="flex items-center justify-center border rounded px-2 bg-gray-100 text-gray-800 peer-checked:bg-green-300 peer-checked:text-black peer-checked:font-semibold">
+                    2-2
+                  </span>
+                </label>
+                <label className="cursor-pointer">
+                  <input type="checkbox" className="peer hidden" />
+                  <span className="flex items-center justify-center border rounded px-2 bg-gray-100 text-gray-800 peer-checked:bg-green-300 peer-checked:text-black peer-checked:font-semibold">
+                    2-1
+                  </span>
+                </label>
+                |
+                <label className="cursor-pointer">
+                  <input type="checkbox" className="peer hidden" />
+                  <span className="flex items-center justify-center border rounded px-2 bg-gray-100 text-gray-800 peer-checked:bg-green-300 peer-checked:text-black peer-checked:font-semibold">
+                    1-2
+                  </span>
+                </label>
+                <label className="cursor-pointer">
+                  <input type="checkbox" className="peer hidden" />
+                  <span className="flex items-center justify-center border rounded px-2 bg-gray-100 text-gray-800 peer-checked:bg-green-300 peer-checked:text-black peer-checked:font-semibold">
+                    1-1
+                  </span>
+                </label>
+                |
+              </div>
+            </div>
           </h2>
           <button
             onClick={handleCloseSummaryModal}
